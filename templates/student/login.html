@@ -10,9 +10,9 @@
                 <div class="brand-icon mx-auto mb-3" style="width: 54px; height: 54px; font-size: 1.5rem; border-radius: 16px;">
                     <i class="bi bi-credit-card-2-front-fill"></i>
                 </div>
-                <h3 class="fw-bold mb-1">Вход в личный кабинет</h3>
+                <h3 class="fw-bold mb-1">Вход для учеников</h3>
                 <p class="text-muted small mb-0">
-                    Введите ваш логин и пароль ученика гимназии
+                    Введите ваш логин и пароль для доступа к карте привилегий
                 </p>
             </div>
 
@@ -48,10 +48,17 @@
 
             <hr class="my-4 opacity-10">
 
-            <div class="text-center">
-                <p class="text-muted small mb-2">Ещё нет аккаунта в системе?</p>
+            <div class="text-center mb-3">
+                <p class="text-muted small mb-2">Ещё нет аккаунта ученика?</p>
                 <a href="{% url 'users:student_register' %}" class="btn btn-outline-primary btn-sm w-100 rounded-pill py-2 fw-medium">
-                    <i class="bi bi-person-plus me-1"></i> Зарегистрироваться как ученик
+                    <i class="bi bi-person-plus me-1"></i> Зарегистрироваться
+                </a>
+            </div>
+
+            <div class="bg-light rounded-4 p-3 text-center border mt-3">
+                <div class="small text-muted mb-2">Вы учитель или администратор?</div>
+                <a href="{% url 'users:login' %}" class="btn btn-dark btn-sm w-100 rounded-pill py-2 fw-semibold">
+                    <i class="bi bi-shield-lock me-1"></i> Вход для сотрудников
                 </a>
             </div>
         </div>
