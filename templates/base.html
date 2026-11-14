@@ -5,54 +5,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Карты привилегий — Гимназия № 16{% endblock %}</title>
+    <!-- Локальный Bootstrap 5 и иконки -->
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'vendor/icons/bootstrap-icons.min.css' %}">
+    <!-- Кастомные стили -->
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-glass sticky-top mb-4">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="/">
-                🎓 Гимназия № 16 <span class="fw-normal text-secondary fs-6">| Карты привилегий</span>
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-white" href="/">
+                <span class="brand-icon">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </span>
+                <span>Гимназия № 16</span>
+                <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 fw-semibold d-none d-sm-inline-block">
+                    Карты привилегий
+                </span>
             </a>
+
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Меню">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
             <div class="collapse navbar-collapse" id="mainNavbar">
-                <ul class="navbar-nav ms-auto align-items-lg-center gap-2">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-2 pt-3 pt-lg-0">
                     {% if request.user.is_authenticated %}
                         {% if request.user.is_student %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'cards:student_dashboard' %}">Мой кабинет</a>
+                                <a class="nav-link fw-medium px-3 rounded-pill {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}" href="{% url 'cards:student_dashboard' %}">
+                                    <i class="bi bi-credit-card-2-front me-1"></i> Мой кабинет
+                                </a>
                             </li>
                         {% elif request.user.is_head_teacher or request.user.is_superuser %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'cards:head_dashboard' %}">Заявки</a>
+                                <a class="nav-link fw-medium px-3 rounded-pill {% if request.resolver_match.url_name == 'head_dashboard' %}active{% endif %}" href="{% url 'cards:head_dashboard' %}">
+                                    <i class="bi bi-inbox me-1"></i> Заявки
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'reports:manage_trimesters' %}">Триместры</a>
+                                <a class="nav-link fw-medium px-3 rounded-pill {% if request.resolver_match.url_name == 'manage_trimesters' %}active{% endif %}" href="{% url 'reports:manage_trimesters' %}">
+                                    <i class="bi bi-calendar3 me-1"></i> Триместры
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'reports:import_students' %}">Импорт списков</a>
+                                <a class="nav-link fw-medium px-3 rounded-pill {% if request.resolver_match.url_name == 'import_students' %}active{% endif %}" href="{% url 'reports:import_students' %}">
+                                    <i class="bi bi-file-earmark-arrow-up me-1"></i> Импорт
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'reports:export_report' %}">Отчёт Excel</a>
+                                <a class="nav-link fw-medium px-3 rounded-pill" href="{% url 'reports:export_report' %}">
+                                    <i class="bi bi-file-earmark-excel me-1"></i> Отчёт
+                                </a>
                             </li>
                         {% else %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'cards:teacher_dashboard' %}">Мои заявки</a>
+                                <a class="nav-link fw-medium px-3 rounded-pill {% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}" href="{% url 'cards:teacher_dashboard' %}">
+                                    <i class="bi bi-list-check me-1"></i> Мои заявки
+                                </a>
                             </li>
                         {% endif %}
-                        <li class="nav-item">
-                            <span class="nav-link text-info small">{{ request.user.get_full_name|default:request.user.username }}</span>
-                        </li>
-                        <li class="nav-item">
+
+                        <li class="nav-item ms-lg-2 d-flex align-items-center gap-2 border-top border-white border-opacity-10 border-lg-0 pt-2 pt-lg-0 mt-2 mt-lg-0">
+                            <span class="user-pill">
+                                <i class="bi bi-person-circle text-info me-1"></i>
+                                {{ request.user.get_full_name|default:request.user.username }}
+                            </span>
                             <form method="post" action="{% url 'users:logout' %}" class="d-inline">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-outline-light btn-sm">Выйти</button>
+                                <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                                    <i class="bi bi-box-arrow-right"></i> Выйти
+                                </button>
                             </form>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link small text-light" href="{% url 'users:student_register' %}">Регистрация ученика</a>
+                            <a class="btn btn-outline-light btn-sm rounded-pill px-3 fw-medium" href="{% url 'users:student_register' %}">
+                                Активировать карту
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link small text-secondary" href="{% url 'users:login' %}">Вход для учителей</a>
+                            <a class="btn btn-primary btn-sm rounded-pill px-3 fw-medium shadow-sm" href="{% url 'users:login' %}">
+                                Вход в систему
+                            </a>
                         </li>
                     {% endif %}
                 </ul>
@@ -62,10 +97,12 @@
 
     <main class="container mb-5">
         {% if messages %}
-            <div class="mb-3">
+            <div class="mb-4">
                 {% for message in messages %}
-                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
-                        {{ message }}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show border-0 shadow-sm rounded-4 d-flex align-items-center" role="alert">
+                        <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+                        <div>{{ message }}</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
                     </div>
                 {% endfor %}
             </div>
@@ -74,12 +111,14 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="bg-white border-top py-3 text-center text-muted small mt-auto">
+    <footer class="footer-modern py-4 text-center text-muted small mt-auto">
         <div class="container">
-            Система учёта карт привилегий • Гимназия № 16
+            <span>© 2026 Система учёта карт привилегий • Гимназия № 16</span>
         </div>
     </footer>
 
+    <!-- Локальный Bootstrap 5 JS Bundle -->
+    <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

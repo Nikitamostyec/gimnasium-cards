@@ -1,9 +1,15 @@
-<details class="d-inline-block mt-1">
-    <summary class="btn btn-outline-danger btn-sm">Отклонить</summary>
-    <form method="post" action="{% url 'cards:change_request_status' req.pk 'reject' %}" class="card card-body p-3 mt-2 border-danger shadow-sm" style="min-width: 260px;">
+<details class="d-inline-block">
+    <summary class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold" style="list-style: none;">
+        <i class="bi bi-x-circle me-1"></i>Отклонить
+    </summary>
+    <form method="post" action="{% url 'cards:change_request_status' req.pk 'reject' %}" class="bento-card p-3 mt-2 border border-danger border-opacity-25 shadow" style="min-width: 270px;">
         {% csrf_token %}
-        <label class="form-label small fw-bold text-danger mb-1">Причина отклонения *</label>
-        <textarea name="reason" rows="2" class="form-control form-control-sm mb-2" placeholder="Укажите причину отказа..." required></textarea>
-        <button type="submit" class="btn btn-danger btn-sm w-100">Подтвердить отказ</button>
+        <label class="form-label small fw-bold text-danger mb-1">
+            Причина отклонения <span class="text-danger">*</span>
+        </label>
+        <textarea name="reason" rows="2" class="form-control form-control-sm rounded-3 mb-2" placeholder="Укажите причину отказа..." required></textarea>
+        <button type="submit" class="btn btn-danger btn-sm w-100 rounded-pill fw-semibold">
+            Подтвердить отказ
+        </button>
     </form>
 </details>

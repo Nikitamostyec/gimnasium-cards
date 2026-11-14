@@ -3,55 +3,62 @@
 {% block title %}Вход для сотрудников — Гимназия № 16{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-4">
-    <div class="col-md-6 col-lg-4">
-        <div class="card shadow-sm border-0 rounded-4">
-            <div class="card-body p-4 p-md-5">
-                <h3 class="card-title text-center fw-bold mb-2">Вход для сотрудников</h3>
-                <p class="text-muted text-center small mb-4">
+<div class="row justify-content-center mt-4 mb-5">
+    <div class="col-md-7 col-lg-5 col-xl-4">
+        <div class="bento-card p-4 p-md-5">
+            <div class="text-center mb-4">
+                <div class="brand-icon mx-auto mb-3" style="width: 54px; height: 54px; font-size: 1.5rem; border-radius: 16px; background: linear-gradient(135deg, #0f172a 0%, #334155 100%);">
+                    <i class="bi bi-shield-lock-fill"></i>
+                </div>
+                <h3 class="fw-bold mb-1">Вход для сотрудников</h3>
+                <p class="text-muted small mb-0">
                     Учителя-предметники и администрация гимназии
                 </p>
+            </div>
 
-                {% if form.non_field_errors %}
-                    <div class="alert alert-danger">
-                        {% for error in form.non_field_errors %}
-                            <div>{{ error }}</div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-                <form method="post" novalidate>
-                    {% csrf_token %}
-
-                    {% for field in form %}
-                        <div class="mb-3">
-                            <label for="{{ field.id_for_label }}" class="form-label fw-semibold">
-                                {{ field.label }}
-                            </label>
-                            {{ field }}
-                            {% if field.errors %}
-                                <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
-                            {% endif %}
-                        </div>
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger border-0 rounded-4 small py-2">
+                    {% for error in form.non_field_errors %}
+                        <div><i class="bi bi-exclamation-circle me-1"></i> {{ error }}</div>
                     {% endfor %}
-
-                    <button type="submit" class="btn btn-dark btn-lg w-100 rounded-3 mt-2">
-                        Войти в систему
-                    </button>
-                </form>
-
-                <hr class="my-4">
-
-                <div class="text-center">
-                    <p class="text-muted small mb-2">Впервые в системе как учитель?</p>
-                    <a href="{% url 'users:teacher_register' %}" class="btn btn-outline-dark w-100 rounded-3">
-                        Регистрация для учителей
-                    </a>
                 </div>
+            {% endif %}
 
-                <div class="text-center mt-3">
-                    <a href="{% url 'cards:student_login' %}" class="small text-muted">← Вернуться ко входу для учеников</a>
-                </div>
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                            {{ field.label }}
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1">
+                                <i class="bi bi-exclamation-circle me-1"></i>{{ field.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="btn btn-dark btn-lg w-100 rounded-pill fw-semibold shadow-sm mt-2">
+                    Войти в систему <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </form>
+
+            <hr class="my-4 opacity-10">
+
+            <div class="text-center">
+                <p class="text-muted small mb-2">Впервые в системе как учитель?</p>
+                <a href="{% url 'users:teacher_register' %}" class="btn btn-outline-dark btn-sm w-100 rounded-pill py-2 fw-medium">
+                    <i class="bi bi-person-plus me-1"></i> Регистрация для учителей
+                </a>
+            </div>
+
+            <div class="text-center mt-3 pt-1">
+                <a href="{% url 'cards:student_login' %}" class="small text-decoration-none text-muted fw-medium">
+                    <i class="bi bi-arrow-left me-1"></i> Вернуться ко входу для учеников
+                </a>
             </div>
         </div>
     </div>

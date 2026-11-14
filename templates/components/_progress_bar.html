@@ -1,21 +1,28 @@
-<div class="mb-2">
-    <div class="d-flex justify-content-between align-items-center mb-1">
-        <span class="fw-semibold text-muted small">Использовано привилегий:</span>
-        <span class="fw-bold">{{ card.used }} из {{ card.limit }} (осталось: {{ card.remaining_limit }})</span>
+<div class="mb-1">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="fw-medium text-muted small">Использовано привилегий</span>
+        <span class="fw-bold fs-6">
+            {{ card.used }} из {{ card.limit }}
+            <span class="badge bg-light text-dark border rounded-pill ms-1 fw-semibold">
+                осталось: {{ card.remaining_limit }}
+            </span>
+        </span>
     </div>
-    <div class="progress" style="height: 12px; border-radius: 8px;">
-        <div class="progress-bar {% if card.remaining_limit == 0 %}bg-secondary{% elif card.card_type == 'GOLD' %}bg-warning{% else %}bg-info{% endif %}"
+
+    <div class="progress bg-light border" style="height: 14px; border-radius: 50px; padding: 2px;">
+        <div class="progress-bar rounded-pill {% if card.remaining_limit == 0 %}bg-secondary{% elif card.card_type == 'GOLD' %}bg-warning{% else %}bg-primary{% endif %}"
              role="progressbar"
-             style="width: {% widthratio card.used card.limit 100 %}%;"
+             style="width: {% widthratio card.used card.limit 100 %}%; transition: width 0.5s ease;"
              aria-valuenow="{{ card.used }}"
              aria-valuemin="0"
              aria-valuemax="{{ card.limit }}">
         </div>
     </div>
+
     {% if card.grade_removal_credits > 0 %}
-        <div class="mt-2">
-            <span class="badge bg-success-subtle text-success border border-success-subtle">
-                +1 резервный отказ от оценки (привилегия №5)
+        <div class="mt-3">
+            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-2 fw-semibold">
+                <i class="bi bi-stars me-1"></i> +1 резервный отказ от оценки (привилегия №5)
             </span>
         </div>
     {% endif %}

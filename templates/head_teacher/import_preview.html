@@ -3,40 +3,62 @@
 {% block title %}Импорт списков учеников — Гимназия № 16{% endblock %}
 
 {% block content %}
-<div class="card shadow-sm border-0 rounded-4 mb-4">
-    <div class="card-body p-4">
-        <h3 class="fw-bold mb-2">Импорт обладателей карт (Excel / Word)</h3>
-        <p class="text-muted small mb-4">
-            Загрузите файл <code>.xlsx</code> или <code>.docx</code> со списком учеников, классом и типом карты (Золотая / Серебряная).
-        </p>
-
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="row g-3 align-items-end">
-                {% for field in form %}
-                    <div class="col-md-5">
-                        <label class="form-label fw-semibold" for="{{ field.id_for_label }}">
-                            {{ field.label }}
-                        </label>
-                        {{ field }}
-                        {% if field.errors %}
-                            <div class="text-danger small mt-1">{{ field.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100 fw-semibold">Загрузить</button>
-                </div>
-            </div>
-        </form>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <span class="text-muted small text-uppercase fw-semibold">Загрузка данных</span>
+        <h2 class="fw-bold mb-0 mt-1">Импорт обладателей карт</h2>
     </div>
+    <a href="{% url 'cards:head_dashboard' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-medium">
+        <i class="bi bi-arrow-left me-1"></i> Назад к заявкам
+    </a>
+</div>
+
+<div class="bento-card p-4 mb-4">
+    <div class="d-flex align-items-start gap-3 mb-4">
+        <div class="privilege-icon bg-primary-subtle text-primary">
+            <i class="bi bi-file-earmark-spreadsheet-fill"></i>
+        </div>
+        <div>
+            <h5 class="fw-bold mb-1">Загрузка файла Excel или Word</h5>
+            <p class="text-muted small mb-0">
+                Выберите триместр и загрузите файл <code class="text-primary">.xlsx</code> или <code class="text-primary">.docx</code> со списком учеников, классом и типом карты (Золотая / Серебряная).
+            </p>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row g-3 align-items-end">
+            {% for field in form %}
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold small text-uppercase text-muted" for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div class="text-danger small mt-1">
+                            <i class="bi bi-exclamation-circle me-1"></i>{{ field.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold shadow-sm">
+                    <i class="bi bi-upload me-1"></i> Загрузить
+                </button>
+            </div>
+        </div>
+    </form>
 </div>
 
 {% if preview_mode %}
     {% if errors %}
-        <div class="alert alert-warning rounded-4 shadow-sm mb-4">
-            <h6 class="fw-bold mb-2">Обнаружены ошибки в строках файла (они не будут загружены):</h6>
-            <ul class="mb-0 small">
+        <div class="alert alert-warning border-0 rounded-4 shadow-sm mb-4 p-4">
+            <div class="d-flex align-items-center gap-2 fw-bold text-warning-emphasis mb-2">
+                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                <span>Обнаружены ошибки в строках файла (они не будут загружены):</span>
+            </div>
+            <ul class="mb-0 small text-dark">
                 {% for err in errors %}
                     <li>{{ err }}</li>
                 {% endfor %}
@@ -44,47 +66,56 @@
         </div>
     {% endif %}
 
-    <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold mb-0">
-                Предпросмотр данных для «{{ trimester.name }}» (найдено записей: {{ valid_rows|length }})
-            </h5>
+    <div class="bento-card overflow-hidden mb-4">
+        <div class="p-4 bg-white border-bottom d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <h5 class="fw-bold mb-1">Предпросмотр данных для «{{ trimester.name }}»</h5>
+                <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-1 fw-semibold">
+                    Найдено корректных записей: {{ valid_rows|length }}
+                </span>
+            </div>
             {% if valid_rows %}
                 <form method="post" action="{% url 'reports:import_students_confirm' %}">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-success fw-semibold">
-                        Подтвердить и сохранить в базу
+                    <button type="submit" class="btn btn-success rounded-pill px-4 py-2 fw-semibold shadow-sm">
+                        <i class="bi bi-check2-circle me-1"></i> Подтвердить и сохранить в базу
                     </button>
                 </form>
             {% endif %}
         </div>
+
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table table-modern table-hover align-middle mb-0">
+                <thead>
                     <tr>
                         <th class="ps-4">#</th>
                         <th>ФИО ученика</th>
                         <th>Класс</th>
-                        <th>Тип карты</th>
+                        <th class="pe-4">Тип карты</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for row in valid_rows %}
                         <tr>
-                            <td class="ps-4 text-muted">{{ forloop.counter }}</td>
+                            <td class="ps-4 text-muted fw-medium">{{ forloop.counter }}</td>
                             <td class="fw-semibold">{{ row.full_name }}</td>
-                            <td>{{ row.grade_num }}{{ row.grade_letter }}</td>
                             <td>
+                                <span class="badge bg-dark rounded-pill px-3 py-1">
+                                    {{ row.grade_num }}{{ row.grade_letter }}
+                                </span>
+                            </td>
+                            <td class="pe-4">
                                 {% if row.card_type == 'GOLD' %}
-                                    <span class="badge badge-card-gold">Золотая (3)</span>
+                                    <span class="badge badge-card-gold rounded-pill">★ Золотая (3)</span>
                                 {% else %}
-                                    <span class="badge badge-card-silver">Серебряная (2)</span>
+                                    <span class="badge badge-card-silver rounded-pill">✦ Серебряная (2)</span>
                                 {% endif %}
                             </td>
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center text-muted py-4">
+                            <td colspan="4" class="text-center text-muted py-5">
+                                <i class="bi bi-file-earmark-x fs-2 d-block mb-2 opacity-50"></i>
                                 В загруженном файле не найдено корректных записей.
                             </td>
                         </tr>
