@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Карты привилегий — Гимназия № 16{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/">
+                🎓 Гимназия № 16 <span class="fw-normal text-secondary fs-6">| Карты привилегий</span>
+            </a>
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <ul class="navbar-nav ms-auto align-items-lg-center gap-2">
+                    {% if request.user.is_authenticated %}
+                        {% if request.user.is_student %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'cards:student_dashboard' %}">Мой кабинет</a>
+                            </li>
+                        {% elif request.user.is_head_teacher or request.user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'cards:head_dashboard' %}">Заявки</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'reports:manage_trimesters' %}">Триместры</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'reports:import_students' %}">Импорт списков</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'reports:export_report' %}">Отчёт Excel</a>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'cards:teacher_dashboard' %}">Мои заявки</a>
+                            </li>
+                        {% endif %}
+                        <li class="nav-item">
+                            <span class="nav-link text-info small">{{ request.user.get_full_name|default:request.user.username }}</span>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="{% url 'users:logout' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-light btn-sm">Выйти</button>
+                            </form>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link small text-light" href="{% url 'users:student_register' %}">Регистрация ученика</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link small text-secondary" href="{% url 'users:login' %}">Вход для учителей</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container mb-5">
+        {% if messages %}
+            <div class="mb-3">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show shadow-sm" role="alert">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="bg-white border-top py-3 text-center text-muted small mt-auto">
+        <div class="container">
+            Система учёта карт привилегий • Гимназия № 16
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

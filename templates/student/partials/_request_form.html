@@ -1,0 +1,54 @@
+<div class="card border-primary shadow-sm rounded-4 mt-3">
+    <div class="card-header bg-primary text-white fw-semibold rounded-top-4 d-flex justify-content-between align-items-center">
+        <span>Оформление заявки: {{ privilege.name }}</span>
+        <a href="{% url 'cards:student_dashboard' %}" class="btn-close btn-close-white" aria-label="Закрыть"></a>
+    </div>
+    <div class="card-body p-4">
+        <form method="post" action="{% url 'cards:create_request' %}">
+            {% csrf_token %}
+            {{ form.privilege_code }}
+
+            {% if privilege.requires_subject %}
+                <div class="mb-3">
+                    <label for="{{ form.subject.id_for_label }}" class="form-label fw-semibold">
+                        {{ form.subject.label }} <span class="text-danger">*</span>
+                    </label>
+                    {{ form.subject }}
+                </div>
+            {% endif %}
+
+            {% if privilege.code == 'DROP_GRADE' %}
+                <div class="mb-3">
+                    <label for="{{ form.grade_to_remove.id_for_label }}" class="form-label fw-semibold">
+                        {{ form.grade_to_remove.label }} <span class="text-danger">*</span>
+                    </label>
+                    {{ form.grade_to_remove }}
+                    <div class="form-text">Укажите балл от 1 до 10 включительно, который нужно аннулировать в журнале.</div>
+                </div>
+            {% endif %}
+
+            {% if privilege.requires_date and privilege.code != 'DROP_GRADE' %}
+                <div class="mb-3">
+                    <label for="{{ form.target_date.id_for_label }}" class="form-label fw-semibold">
+                        {{ form.target_date.label }} <span class="text-danger">*</span>
+                    </label>
+                    {{ form.target_date }}
+                    <div class="form-text">Заявку на освобождение от занятий нужно подавать минимум за 2 дня.</div>
+                </div>
+            {% endif %}
+
+            {% if not privilege.requires_subject and not privilege.requires_date %}
+                <p class="text-muted small mb-3">
+                    Заявка будет отправлена напрямую завучу гимназии. Дополнительные поля не требуются.
+                </p>
+            {% endif %}
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success px-4">Подтвердить и отправить</button>
+                <a href="{% url 'cards:student_dashboard' %}" class="btn btn-outline-secondary">
+                    Отмена
+                </a>
+            </div>
+        </form>
+    </div>
+</div>

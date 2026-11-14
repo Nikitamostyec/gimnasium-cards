@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: gimnasium_db
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: gimnasium_db
+      POSTGRES_USER: gimnasium_user
+      POSTGRES_PASSWORD: strong_password_123
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gimnasium_user -d gimnasium_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: gimnasium_web
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: "your-super-secret-production-key-change-me"
+      ALLOWED_HOSTS: "localhost,127.0.0.1"
+      DATABASE_URL: "postgres://gimnasium_user:strong_password_123@db:5432/gimnasium_db"
+      TEACHER_INVITE_CODE: "GIM16-2026-TEACH"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

@@ -1,0 +1,22 @@
+<div class="mb-2">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="fw-semibold text-muted small">Использовано привилегий:</span>
+        <span class="fw-bold">{{ card.used }} из {{ card.limit }} (осталось: {{ card.remaining_limit }})</span>
+    </div>
+    <div class="progress" style="height: 12px; border-radius: 8px;">
+        <div class="progress-bar {% if card.remaining_limit == 0 %}bg-secondary{% elif card.card_type == 'GOLD' %}bg-warning{% else %}bg-info{% endif %}"
+             role="progressbar"
+             style="width: {% widthratio card.used card.limit 100 %}%;"
+             aria-valuenow="{{ card.used }}"
+             aria-valuemin="0"
+             aria-valuemax="{{ card.limit }}">
+        </div>
+    </div>
+    {% if card.grade_removal_credits > 0 %}
+        <div class="mt-2">
+            <span class="badge bg-success-subtle text-success border border-success-subtle">
+                +1 резервный отказ от оценки (привилегия №5)
+            </span>
+        </div>
+    {% endif %}
+</div>

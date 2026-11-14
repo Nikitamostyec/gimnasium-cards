@@ -1,0 +1,174 @@
+\{% extends 'base.html' %}
+
+{% block title %}Мой кабинет — Гимназия № 16{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0 rounded-4 mb-4">
+    <div class="card-body p-4">
+        <div class="row align-items-center gy-3">
+            <div class="col-md-7">
+                <span class="text-muted small text-uppercase fw-semibold">
+                    {% if card %}{{ card.trimester.name }}{% else %}Личный профиль ученика{% endif %}
+                </span>
+                <h2 class="fw-bold mb-1 mt-1">
+                    {{ request.user.get_full_name|default:request.user.username }}
+                </h2>
+                <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
+                    {% if request.user.grade_num %}
+                        <span class="badge bg-dark fs-6">{{ request.user.grade_num }}{{ request.user.grade_letter }} класс</span>
+                    {% endif %}
+                    {% if card %}
+                        {% if card.card_type == 'GOLD' %}
+                            <span class="badge badge-card-gold rounded-pill">★ {{ card.get_card_type_display }}</span>
+                        {% else %}
+                            <span class="badge badge-card-silver rounded-pill">✦ {{ card.get_card_type_display }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge bg-secondary rounded-pill">Карта привилегий не активирована</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-5">
+                {% if card %}
+                    {% include 'components/_progress_bar.html' %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if card %}
+    {% if selected_privilege and form %}
+        <div id="request-form-container" class="mb-4">
+            {% include 'student/partials/_request_form.html' with privilege=selected_privilege form=form %}
+        </div>
+    {% endif %}
+
+    <h4 class="fw-bold mb-3">Доступные привилегии</h4>
+    <div class="row g-3 mb-5">
+        {% for item in privileges_info %}
+            <div class="col-md-6">
+                <div class="card privilege-card shadow-sm h-100 {% if not item.is_available %}opacity-75 bg-light{% endif %}">
+                    <div class="card-body d-flex flex-column justify-content-between p-4">
+                        <div>
+                            <h6 class="fw-bold mb-2">{{ item.privilege.name }}</h6>
+                            <div class="mb-3">
+                                {% if item.privilege.requires_subject %}
+                                    <span class="badge bg-primary-subtle text-primary">Направляется учителю</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary">Направляется завучу</span>
+                                {% endif %}
+                                {% if item.privilege.code == 'DROP_GRADE' %}
+                                    <span class="badge bg-warning-subtle text-dark">Пакет: {{ card.grade_removal_used_count }}/2</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div>
+                            {% if item.is_available %}
+                                <a href="?privilege={{ item.privilege.code }}"
+                                   class="btn btn-outline-primary btn-sm w-100 fw-semibold">
+                                    Выбрать привилегию
+                                </a>
+                            {% else %}
+                                <button type="button" class="btn btn-secondary btn-sm w-100" disabled>
+                                    {{ item.unavailable_reason }}
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <h4 class="fw-bold mb-3">История моих заявок</h4>
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">№</th>
+                        <th>Привилегия</th>
+                        <th>Детали</th>
+                        <th>Дата подачи</th>
+                        <th>Статус</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                        <tr>
+                            <td class="ps-4 text-muted">#{{ req.pk }}</td>
+                            <td class="fw-semibold">{{ req.privilege.name }}</td>
+                            <td>
+                                {% if req.subject %}
+                                    <span class="badge bg-light text-dark border">{{ req.subject.name }}</span>
+                                {% endif %}
+                                {% if req.grade_to_remove %}
+                                    <span class="badge bg-warning-subtle text-dark border">Оценка: {{ req.grade_to_remove }}</span>
+                                {% endif %}
+                                {% if req.target_date %}
+                                    <span class="badge bg-light text-dark border">{{ req.target_date|date:"d.m.Y" }}</span>
+                                {% endif %}
+                                {% if not req.subject and not req.grade_to_remove and not req.target_date %}
+                                    <span class="text-muted small">—</span>
+                                {% endif %}
+                                {% if req.status == 'REJECTED' and req.rejection_reason %}
+                                    <div class="text-danger small mt-1">
+                                        <strong>Причина отказа:</strong> {{ req.rejection_reason }}
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">{{ req.created_at|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                {% if req.status == 'NEW' %}
+                                    <span class="badge bg-primary">Новая</span>
+                                {% elif req.status == 'IN_PROGRESS' %}
+                                    <span class="badge bg-warning text-dark">В работе</span>
+                                {% elif req.status == 'COMPLETED' %}
+                                    <span class="badge bg-success">Выполнено</span>
+                                {% elif req.status == 'REJECTED' %}
+                                    <span class="badge bg-danger">Отклонено</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                Вы ещё не подавали заявок в этом триместре.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% else %}
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4 p-md-5 text-center">
+                    <h4 class="fw-bold mb-2">Активация карты привилегий</h4>
+                    <p class="text-muted small mb-4">
+                        Оставлять заявки на использование привилегий могут только обладатели Золотой или Серебряной карты.
+                        Если вы получили карту на этот триместр, введите секретный код, выданный завучем.
+                    </p>
+
+                    <form method="post" action="{% url 'cards:activate_card' %}" class="text-start">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="{{ activate_form.activation_code.id_for_label }}" class="form-label fw-semibold">
+                                {{ activate_form.activation_code.label }}
+                            </label>
+                            {{ activate_form.activation_code }}
+                        </div>
+                        <button type="submit" class="btn btn-success btn-lg w-100 rounded-3 fw-semibold">
+                            Активировать карту
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}

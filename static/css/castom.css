@@ -1,0 +1,50 @@
+body {
+    background-color: #f4f6f9;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+.badge-card-gold {
+    background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    color: #3d2800;
+    font-weight: 700;
+    border: 1px solid #e0a800;
+    padding: 0.45em 0.85em;
+}
+
+.badge-card-silver {
+    background: linear-gradient(135deg, #e0e4e8 0%, #bcc6cc 100%);
+    color: #1f2933;
+    font-weight: 700;
+    border: 1px solid #9aa5b1;
+    padding: 0.45em 0.85em;
+}
+
+/* Карточки привилегий */
+.privilege-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border: none;
+    border-radius: 12px;
+}
+
+.privilege-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Адаптив для мобильных устройств */
+@media (max-width: 576px) {
+    .container {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+    .btn-lg {
+        font-size: 1rem;
+        padding: 0.65rem 1rem;
+    }
+}
