@@ -4,13 +4,13 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
 
 from core.utils import normalize_class_str, normalize_text
-from django.core.validators import MaxValueValidator, MinValueValidator
-from users.models import Subject
+from users.models import Corpus, Subject
 
 
 def generate_activation_code() -> str:
@@ -18,6 +18,7 @@ def generate_activation_code() -> str:
     alphabet = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
     raw = ''.join(secrets.choice(alphabet) for _ in range(8))
     return f'{raw[:4]}-{raw[4:]}'
+
 
 class Trimester(models.Model):
     """Учебный триместр, определяющий срок действия карт."""
@@ -150,7 +151,6 @@ class Student(models.Model):
         return f'{self.full_name} ({self.grade_num}{self.grade_letter})'
 
 
-
 class CardAssignment(models.Model):
     """Привязка золотой или серебряной карты к ученику на конкретный триместр."""
 
@@ -262,12 +262,27 @@ class PrivilegeRequest(models.Model):
         on_delete=models.PROTECT,
         verbose_name='Привилегия',
     )
+    corpus = models.ForeignKey(
+        Corpus,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name='Корпус',
+    )
     subject = models.ForeignKey(
         Subject,
         on_delete=models.PROTECT,
         null=True,
         blank=True,
         verbose_name='Предмет',
+    )
+    teacher = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='assigned_requests',
+        verbose_name='Учитель-предметник',
     )
     target_date = models.DateField('Желаемая дата', null=True, blank=True)
     grade_to_remove = models.PositiveSmallIntegerField(
@@ -306,3 +321,4 @@ class PrivilegeRequest(models.Model):
 
     def __str__(self):
         return f'Заявка #{self.pk}: {self.card.student} — {self.privilege.name}'
+

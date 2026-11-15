@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Карты привилегий — Гимназия № 16{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
     <!-- Локальный Bootstrap 5 и иконки -->
     <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'vendor/icons/bootstrap-icons.min.css' %}">
@@ -15,9 +16,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-glass sticky-top mb-4">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-white" href="/">
-                <span class="brand-icon">
-                    <i class="bi bi-mortarboard-fill"></i>
-                </span>
+                <img src="{% static 'img/logo.png' %}" alt="Гимназия № 16" style="width: 38px; height: 38px; object-fit: contain; background: #ffffff; border-radius: 50%; padding: 2px;">
                 <span>Гимназия № 16</span>
                 <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 fw-semibold d-none d-sm-inline-block">
                     Карты привилегий
@@ -30,63 +29,68 @@
 
             <div class="collapse navbar-collapse" id="mainNavbar">
                 <ul class="navbar-nav ms-auto align-items-lg-center gap-2 pt-3 pt-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link fw-medium px-3 rounded-pill {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'about' %}">
+                            О проекте
+                        </a>
+                    </li>
+
                     {% if request.user.is_authenticated %}
                         {% if request.user.is_student %}
                             <li class="nav-item">
                                 <a class="nav-link fw-medium px-3 rounded-pill {% if request.resolver_match.url_name == 'student_dashboard' %}active{% endif %}" href="{% url 'cards:student_dashboard' %}">
-                                    <i class="bi bi-credit-card-2-front me-1"></i> Мой кабинет
+                                    Мой кабинет
                                 </a>
                             </li>
                         {% elif request.user.is_head_teacher or request.user.is_superuser %}
                             <li class="nav-item">
                                 <a class="nav-link fw-medium px-3 rounded-pill {% if request.resolver_match.url_name == 'head_dashboard' %}active{% endif %}" href="{% url 'cards:head_dashboard' %}">
-                                    <i class="bi bi-inbox me-1"></i> Заявки
+                                    Заявки
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link fw-medium px-3 rounded-pill {% if request.resolver_match.url_name == 'manage_trimesters' %}active{% endif %}" href="{% url 'reports:manage_trimesters' %}">
-                                    <i class="bi bi-calendar3 me-1"></i> Триместры
+                                    Триместры
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link fw-medium px-3 rounded-pill {% if request.resolver_match.url_name == 'import_students' %}active{% endif %}" href="{% url 'reports:import_students' %}">
-                                    <i class="bi bi-file-earmark-arrow-up me-1"></i> Импорт
+                                    Импорт
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link fw-medium px-3 rounded-pill" href="{% url 'reports:export_report' %}">
-                                    <i class="bi bi-file-earmark-excel me-1"></i> Отчёт
+                                    Отчёт
                                 </a>
                             </li>
                         {% else %}
                             <li class="nav-item">
                                 <a class="nav-link fw-medium px-3 rounded-pill {% if request.resolver_match.url_name == 'teacher_dashboard' %}active{% endif %}" href="{% url 'cards:teacher_dashboard' %}">
-                                    <i class="bi bi-list-check me-1"></i> Мои заявки
+                                    Мои заявки
                                 </a>
                             </li>
                         {% endif %}
 
                         <li class="nav-item ms-lg-2 d-flex align-items-center gap-2 border-top border-white border-opacity-10 border-lg-0 pt-2 pt-lg-0 mt-2 mt-lg-0">
-                            <span class="user-pill">
-                                <i class="bi bi-person-circle text-info me-1"></i>
-                                {{ request.user.get_full_name|default:request.user.username }}
-                            </span>
+                            <a href="{% url 'users:profile' %}" class="user-pill text-decoration-none" title="Настройки профиля">
+                                ⚙️ {{ request.user.get_full_name|default:request.user.username }}
+                            </a>
                             <form method="post" action="{% url 'users:logout' %}" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3">
-                                    <i class="bi bi-box-arrow-right"></i> Выйти
+                                    Выйти
                                 </button>
                             </form>
                         </li>
                     {% else %}
                         <li class="nav-item">
                             <a class="btn btn-outline-light btn-sm rounded-pill px-3 fw-medium" href="{% url 'users:student_register' %}">
-                                Активировать карту
+                                Регистрация ученика
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-primary btn-sm rounded-pill px-3 fw-medium shadow-sm" href="{% url 'users:login' %}">
-                                Вход в систему
+                            <a class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold text-dark shadow-sm" href="{% url 'users:login' %}">
+                                Вход для учителей
                             </a>
                         </li>
                     {% endif %}
@@ -100,7 +104,6 @@
             <div class="mb-4">
                 {% for message in messages %}
                     <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show border-0 shadow-sm rounded-4 d-flex align-items-center" role="alert">
-                        <i class="bi bi-info-circle-fill me-2 fs-5"></i>
                         <div>{{ message }}</div>
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
                     </div>
@@ -112,8 +115,11 @@
     </main>
 
     <footer class="footer-modern py-4 text-center text-muted small mt-auto">
-        <div class="container">
+        <div class="container d-flex flex-wrap justify-content-center align-items-center gap-2">
+            <img src="{% static 'img/logo.png' %}" alt="" style="width: 22px; height: 22px; object-fit: contain; border-radius: 50%;">
             <span>© 2026 Система учёта карт привилегий • Гимназия № 16</span>
+            <span>•</span>
+            <a href="{% url 'about' %}" class="text-decoration-none fw-semibold text-primary">О проекте и авторе</a>
         </div>
     </footer>
 

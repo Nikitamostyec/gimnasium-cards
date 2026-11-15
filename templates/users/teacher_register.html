@@ -3,12 +3,97 @@
 {% block title %}Регистрация учителя — Гимназия № 16{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-4 mb-5">
-    <div class="col-md-8 col-lg-6">
+<style>
+    /* Карточки-переключатели для выбора корпусов */
+    .corpus-chip-input {
+        display: none;
+    }
+    .corpus-chip-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+        padding: 0.65rem 0.75rem;
+        border-radius: 14px;
+        border: 1.5px solid #e2e8f0;
+        background-color: #ffffff;
+        color: #334155;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+        width: 100%;
+    }
+    .corpus-chip-label:hover {
+        border-color: #93c5fd;
+        background-color: #f8fafc;
+    }
+    .corpus-chip-input:checked + .corpus-chip-label {
+        border-color: #2563eb;
+        background-color: #eff6ff;
+        color: #1d4ed8;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+    }
+
+    /* Аккуратные плитки с галочкой для предметов */
+    .subject-chip-input {
+        display: none;
+    }
+    .subject-chip-label {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.55rem 0.85rem;
+        border-radius: 12px;
+        border: 1.5px solid #e2e8f0;
+        background-color: #ffffff;
+        color: #334155;
+        font-weight: 500;
+        font-size: 0.88rem;
+        line-height: 1.25;
+        cursor: pointer;
+        transition: all 0.18s ease;
+        user-select: none;
+        height: 100%;
+    }
+    .subject-chip-label:hover {
+        border-color: #93c5fd;
+        background-color: #f8fafc;
+    }
+    .subject-chip-check {
+        width: 18px;
+        height: 18px;
+        border-radius: 5px;
+        border: 1.5px solid #cbd5e1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 0.75rem;
+        color: transparent;
+        transition: all 0.18s ease;
+    }
+    .subject-chip-input:checked + .subject-chip-label {
+        border-color: #2563eb;
+        background-color: #eff6ff;
+        color: #1d4ed8;
+        font-weight: 600;
+    }
+    .subject-chip-input:checked + .subject-chip-label .subject-chip-check {
+        background-color: #2563eb;
+        border-color: #2563eb;
+        color: #ffffff;
+    }
+</style>
+
+<div class="row justify-content-center my-4">
+    <div class="col-md-9 col-lg-7">
         <div class="bento-card p-4 p-md-5">
             <div class="text-center mb-4">
-                <div class="brand-icon mx-auto mb-3" style="width: 54px; height: 54px; font-size: 1.5rem; border-radius: 16px; background: linear-gradient(135deg, #0f172a 0%, #334155 100%);">
-                    <i class="bi bi-person-badge-fill"></i>
+                <div class="d-inline-flex align-items-center justify-content-center bg-dark text-white rounded-4 mb-3 shadow-sm"
+                     style="width: 52px; height: 52px; font-size: 1.5rem;">
+                    🎓
                 </div>
                 <h3 class="fw-bold mb-1">Регистрация учителя</h3>
                 <p class="text-muted small mb-0">
@@ -17,9 +102,9 @@
             </div>
 
             {% if form.non_field_errors %}
-                <div class="alert alert-danger border-0 rounded-4 small py-2">
+                <div class="alert alert-danger border-0 rounded-4 small">
                     {% for error in form.non_field_errors %}
-                        <div><i class="bi bi-exclamation-circle me-1"></i> {{ error }}</div>
+                        <div>{{ error }}</div>
                     {% endfor %}
                 </div>
             {% endif %}
@@ -27,38 +112,164 @@
             <form method="post" novalidate>
                 {% csrf_token %}
 
-                {% for field in form %}
-                    <div class="mb-3">
-                        <label for="{{ field.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
-                            {{ field.label }}
+                <div class="mb-3">
+                    <label for="{{ form.invite_code.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                        {{ form.invite_code.label }} <span class="text-danger">*</span>
+                    </label>
+                    {{ form.invite_code }}
+                    {% if form.invite_code.errors %}
+                        <div class="text-danger small mt-1">{{ form.invite_code.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="row g-3 mb-3 align-items-end">
+                    <div class="col-md-6">
+                        <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                            Придумайте логин <span class="text-danger">*</span>
                         </label>
-                        {% if field.name == 'subjects' %}
-                            <div class="border rounded-4 p-3 bg-light" style="max-height: 210px; overflow-y: auto;">
-                                {{ field }}
-                            </div>
-                        {% else %}
-                            {{ field }}
-                        {% endif %}
-                        {% if field.errors %}
-                            <div class="text-danger small mt-1">
-                                <i class="bi bi-exclamation-circle me-1"></i>{{ field.errors.0 }}
-                            </div>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
                         {% endif %}
                     </div>
-                {% endfor %}
 
-                <button type="submit" class="btn btn-dark btn-lg w-100 rounded-pill fw-semibold shadow-sm mt-2">
-                    Зарегистрироваться <i class="bi bi-check2-circle ms-1"></i>
-                </button>
-            </form>
+                    <div class="col-md-6">
+                        <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                            Электронная почта <span class="text-danger">*</span>
+                        </label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
 
-            <div class="text-center mt-4 pt-2 border-top border-light">
-                <span class="small text-muted">Уже есть аккаунт сотрудника?</span>
-                <a href="{% url 'users:login' %}" class="small fw-semibold text-decoration-none ms-1">
-                    Войти в систему
-                </a>
+                <div class="row g-3 mb-3 align-items-end">
+                    <div class="col-md-6">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                            {{ form.last_name.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                            {{ form.first_name.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small text-uppercase text-muted d-block mb-2">
+                        Ваши учебные корпуса <span class="text-muted fw-normal text-lowercase">(можно выбрать несколько)</span> <span class="text-danger">*</span>
+                    </label>
+                    <div class="p-3 rounded-4 bg-light border">
+                        <div class="row g-2">
+                            {% for checkbox in form.corpuses %}
+                                <div class="col-6 col-sm-3">
+                                    <input type="checkbox"
+                                           name="{{ checkbox.data.name }}"
+                                           value="{{ checkbox.data.value }}"
+                                           id="{{ checkbox.id_for_label }}"
+                                           class="corpus-chip-input"
+                                           {% if checkbox.data.selected %}checked{% endif %}>
+                                    <label class="corpus-chip-label" for="{{ checkbox.id_for_label }}">
+                                        <span>🏫</span>
+                                        <span>{{ checkbox.choice_label }}</span>
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% if form.corpuses.errors %}
+                        <div class="text-danger small mt-1">{{ form.corpuses.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                        <label class="form-label fw-semibold small text-uppercase text-muted mb-0">
+                            Ваши предметы <span class="text-muted fw-normal text-lowercase">(можно выбрать несколько)</span> <span class="text-danger">*</span>
+                        </label>
+                        <input type="text"
+                               id="subject-search-input"
+                               class="form-control form-control-sm rounded-pill px-3"
+                               style="max-width: 220px;"
+                               placeholder="🔍 Быстрый поиск...">
+                    </div>
+
+                    <div class="p-3 rounded-4 bg-light border" style="max-height: 260px; overflow-y: auto;">
+                        <div class="row g-2" id="subjects-grid">
+                            {% for checkbox in form.subjects %}
+                                <div class="col-12 col-sm-6 subject-item" data-name="{{ checkbox.choice_label|lower }}">
+                                    <input type="checkbox"
+                                           name="{{ checkbox.data.name }}"
+                                           value="{{ checkbox.data.value }}"
+                                           id="{{ checkbox.id_for_label }}"
+                                           class="subject-chip-input"
+                                           {% if checkbox.data.selected %}checked{% endif %}>
+                                    <label class="subject-chip-label" for="{{ checkbox.id_for_label }}">
+                                        <span class="subject-chip-check">✓</span>
+                                        <span>{{ checkbox.choice_label }}</span>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% if form.subjects.errors %}
+                            <div class="text-danger small mt-1">{{ form.subjects.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+    
+                    <div class="row g-3 mb-4 align-items-end">
+                        <div class="col-md-6">
+                            <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                                {{ form.password.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+    
+                        <div class="col-md-6">
+                            <label for="{{ form.confirm_password.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                                {{ form.confirm_password.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.confirm_password }}
+                            {% if form.confirm_password.errors %}
+                                <div class="text-danger small mt-1">{{ form.confirm_password.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+    
+                    <button type="submit" class="btn btn-warning btn-lg w-100 rounded-pill fw-bold text-dark shadow-sm">
+                        Зарегистрироваться
+                    </button>
+                </form>
+    
+                <div class="text-center mt-4 pt-3 border-top small text-muted">
+                    Уже есть аккаунт учителя? <a href="{% url 'users:login' %}" class="fw-semibold text-decoration-none">Войти</a>
+                </div>
             </div>
         </div>
     </div>
-</div>
-{% endblock %}
+    
+    <script>
+    document.getElementById('subject-search-input')?.addEventListener('input', function(e) {
+        const query = e.target.value.trim().toLowerCase();
+        document.querySelectorAll('.subject-item').forEach(item => {
+            const name = item.getAttribute('data-name') || '';
+            item.style.display = name.includes(query) ? '' : 'none';
+        });
+    });
+    </script>
+    {% endblock %}
+    

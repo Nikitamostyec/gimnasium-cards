@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Страница не найдена (404) — Гимназия № 16{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center my-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="bento-card p-4 p-md-5 text-center">
+            <img src="{% static 'img/logo.png' %}" alt="Гимназия № 16" style="width: 56px; height: 56px; object-fit: contain; background: #fff; border-radius: 50%; padding: 3px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" class="mb-3">
+            
+            <div class="display-1 fw-bolder text-primary mb-2" style="letter-spacing: -0.03em;">404</div>
+            <h3 class="fw-bold mb-2">Страница ушла на перемену</h3>
+            <p class="text-muted mb-4">
+                Похоже, такой страницы не существует или ссылка устарела. Проверьте адрес в строке браузера или вернитесь в свой личный кабинет.
+            </p>
+            
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+                <a href="/" class="btn btn-primary btn-lg rounded-pill px-4 fw-semibold shadow-sm">
+                    На главную страницу
+                </a>
+                <a href="{% url 'about' %}" class="btn btn-outline-secondary btn-lg rounded-pill px-4 fw-medium">
+                    О проекте
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

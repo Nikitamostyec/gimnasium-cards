@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+
+{% block title %}О проекте — Карты привилегий • Гимназия № 16{% endblock %}
+
+{% block content %}
+<style>
+    /* Уникальные стили для страницы «О проекте» */
+    .about-hero {
+        background: radial-gradient(circle at top right, #1e3a8a 0%, #0f172a 65%);
+        border-radius: 28px;
+        padding: 3.5rem 2.5rem;
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.22);
+    }
+
+    .about-hero::after {
+        content: "";
+        position: absolute;
+        top: -30%;
+        right: -10%;
+        width: 380px;
+        height: 380px;
+        background: radial-gradient(circle, rgba(246, 211, 101, 0.22) 0%, rgba(246, 211, 101, 0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .hero-badge {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(8px);
+        color: #f6d365;
+        font-weight: 600;
+        padding: 0.45rem 1rem;
+        border-radius: 50px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .step-number {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: #eff6ff;
+        color: #2563eb;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+    }
+
+    .feature-box {
+        background: #ffffff;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        border-radius: 22px;
+        padding: 1.75rem;
+        height: 100%;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
+    }
+
+    .feature-box:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 14px 30px rgba(37, 99, 235, 0.08);
+    }
+
+    .tech-pill {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        color: #334155;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
+
+    /* Уникальная карточка автора */
+    .author-showcase {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border: 1px solid rgba(246, 211, 101, 0.35);
+        border-radius: 28px;
+        padding: 2.5rem;
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);
+    }
+
+    .author-showcase::before {
+        content: "";
+        position: absolute;
+        bottom: -50px;
+        left: -50px;
+        width: 220px;
+        height: 220px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.25) 0%, rgba(59, 130, 246, 0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .author-avatar {
+        width: 84px;
+        height: 84px;
+        border-radius: 24px;
+        background: linear-gradient(135deg, #f6d365 0%, #c99324 100%);
+        color: #2d1e00;
+        font-size: 2rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 25px rgba(217, 155, 38, 0.35);
+        flex-shrink: 0;
+    }
+
+    .gold-gradient-text {
+        background: linear-gradient(135deg, #fde68a 0%, #f59e0b 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    @media (max-width: 768px) {
+        .about-hero {
+            padding: 2.25rem 1.5rem;
+        }
+        .author-showcase {
+            padding: 1.75rem;
+        }
+    }
+</style>
+
+<!-- 1. HERO-БАННЕР -->
+<section class="about-hero mb-5">
+    <div class="row align-items-center gy-4">
+        <div class="col-lg-8">
+            <div class="hero-badge mb-3">
+                ✨ Цифровая экосистема Гимназии № 16
+            </div>
+            <h1 class="display-5 fw-bolder mb-3 lh-sm">
+                Карты привилегий: удобный сервис без бумажной рутины
+            </h1>
+            <p class="lead text-white-50 mb-4" style="max-width: 650px;">
+                Веб-платформа, которая объединяет учеников, учителей-предметников и администрацию гимназии. Подавайте заявки в два клика, отслеживайте лимиты в реальном времени и управляйте привилегиями прозрачно.
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+                {% if request.user.is_authenticated %}
+                    <a href="/" class="btn btn-warning btn-lg rounded-pill px-4 fw-bold text-dark shadow">
+                        Перейти в личный кабинет →
+                    </a>
+                {% else %}
+                    <a href="{% url 'cards:student_login' %}" class="btn btn-warning btn-lg rounded-pill px-4 fw-bold text-dark shadow">
+                        Войти в систему →
+                    </a>
+                    <a href="{% url 'users:student_register' %}" class="btn btn-outline-light btn-lg rounded-pill px-4 fw-semibold">
+                        Регистрация ученика
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-4 d-none d-lg-block">
+            <div class="virtual-card virtual-card-gold shadow-lg" style="transform: rotate(3deg);">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="small text-uppercase fw-bold opacity-75">Гимназия № 16</div>
+                        <h4 class="fw-bolder mb-0 mt-1">★ Золотая карта</h4>
+                    </div>
+                    <div class="card-chip"></div>
+                </div>
+                <div class="mt-4 pt-2">
+                    <div class="small opacity-75">Статус привилегий</div>
+                    <div class="fw-bold fs-5">3 привилегии на триместр</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 2. КАК ЭТО РАБОТАЕТ (ДЛЯ КОГО СОЗДАН СЕРВИС) -->
+<section class="mb-5">
+    <div class="text-center mb-4">
+        <span class="text-primary fw-bold small text-uppercase" style="letter-spacing: 0.08em;">Архитектура сервиса</span>
+        <h2 class="fw-bold mt-1">Три роли — единый механизм</h2>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="feature-box">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="privilege-icon bg-primary-subtle text-primary fs-4">
+                        🎓
+                    </div>
+                    <span class="step-number">01</span>
+                </div>
+                <h5 class="fw-bold mb-2">Для учеников</h5>
+                <p class="text-muted small mb-0 lh-base">
+                    Активация карты по персональному коду, наглядный трекер оставшихся привилегий, выбор предмета или даты и прозрачная история статусов каждой заявки.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-box">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="privilege-icon bg-success-subtle text-success fs-4">
+                        📚
+                    </div>
+                    <span class="step-number">02</span>
+                </div>
+                <h5 class="fw-bold mb-2">Для учителей</h5>
+                <p class="text-muted small mb-0 lh-base">
+                    Учитель видит заявки строго по своим предметам. Одобрение или отклонение в один клик — при отказе лимит автоматически возвращается ученику.
+                </p>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="feature-box">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="privilege-icon bg-warning-subtle text-warning-emphasis fs-4">
+                        🏫
+                    </div>
+                    <span class="step-number">03</span>
+                </div>
+                <h5 class="fw-bold mb-2">Для администрации</h5>
+                <p class="text-muted small mb-0 lh-base">
+                    Управление триместрами, мгновенный импорт списков обладателей карт из Excel и Word, обработка заявок на освобождение и выгрузка готовых отчётов.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 3. УРОВНИ КАРТ И СЕКРЕТНЫЕ ИНГРЕДИЕНТЫ -->
+<section class="row g-4 mb-5 align-items-stretch">
+    <div class="col-lg-6">
+        <div class="bento-card p-4 h-100">
+            <h4 class="fw-bold mb-3">Уровни карт на триместр</h4>
+            <div class="d-flex flex-column gap-3">
+                <div class="p-3 rounded-4 border bg-light d-flex align-items-center justify-content-between gap-3">
+                    <div>
+                        <span class="badge badge-card-gold rounded-pill mb-2">★ Золотая карта</span>
+                        <div class="small text-muted">Максимальный пакет возможностей для отличников и призёров.</div>
+                    </div>
+                    <div class="text-end flex-shrink-0">
+                        <div class="fs-3 fw-bolder text-dark">3</div>
+                        <div class="small text-muted">привилегии</div>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-4 border bg-light d-flex align-items-center justify-content-between gap-3">
+                    <div>
+                        <span class="badge badge-card-silver rounded-pill mb-2">✦ Серебряная карта</span>
+                        <div class="small text-muted">Базовый пакет привилегий с возможностью использования резерва оценки.</div>
+                    </div>
+                    <div class="text-end flex-shrink-0">
+                        <div class="fs-3 fw-bolder text-dark">2</div>
+                        <div class="small text-muted">привилегии</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="bento-card p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+                <h4 class="fw-bold mb-2">Секретные ингредиенты сервиса</h4>
+                <p class="text-muted small mb-4">
+                    Система работает на передовых школьных технологиях, проверенных на контрольных по физике и алгебре:
+                </p>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="tech-pill">☕ 42 кружки чая при разработке</span>
+                    <span class="tech-pill">🛡️ Анти-контрольный щит v2.0</span>
+                    <span class="tech-pill">🍀 +100% к удаче у доски</span>
+                    <span class="tech-pill">🌟 Создано для лучших из лучших</span>
+                    <span class="tech-pill">🔥 Выковано в недрах 10Ф</span>
+                    <span class="tech-pill">🔋 Работает на чистом энтузиазме</span>
+                </div>
+            </div>
+            <div class="mt-4 pt-3 border-top border-light small text-muted">
+                ✨ При создании сайта ни один бумажный журнал и ни одна нервная клетка завуча не пострадали.
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 4. БЛОК ОБ АВТОРЕ И СОЗДАТЕЛЕ -->
+<section class="author-showcase mb-4">
+    <div class="row align-items-center gy-4 position-relative">
+        <div class="col-lg-8">
+            <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-4">
+                <div class="author-avatar">
+                    МН
+                </div>
+                <div>
+                    <div class="text-uppercase small fw-bold gold-gradient-text mb-1" style="letter-spacing: 0.1em;">
+                        Автор и разработчик продукта
+                    </div>
+                    <h2 class="fw-bolder mb-1">Мостынец Никита</h2>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                        <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 rounded-pill px-3 py-1">
+                            🎓 Ученик 10Ф класса
+                        </span>
+                        <span class="badge bg-white bg-opacity-10 text-white border border-white border-opacity-25 rounded-pill px-3 py-1">
+                            Гимназия № 16
+                        </span>
+                    </div>
+                    <p class="text-white-50 mb-0 lh-base" style="max-width: 600px;">
+                        Идея этого сервиса родилась из живого общения с классным руководителем и завучем, а также из безграничного желания помочь любимой гимназии избавиться от бумажной волокиты. Хотелось создать по-настоящему удобный цифровой инструмент для учеников и педагогов. Правда, пока я так увлечённо писал код, сам чуть не забыл про уроки — теперь мечтаю заработать хотя бы на Серебряную карту, чтобы законно отоспаться!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 text-lg-end">
+            <div class="p-3 rounded-4 d-inline-block text-start" style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);">
+                <div class="small text-white-50 mb-1">Версия релиза</div>
+                <div class="fw-bold text-white mb-2">v1.0 • Production Ready</div>
+                <div class="small text-warning">
+                    💻 Разработано с любовью к Гимназии № 16
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

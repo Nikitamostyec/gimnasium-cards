@@ -5,6 +5,20 @@ from django.db import models
 from django.utils import timezone
 
 
+class Corpus(models.Model):
+    """Учебный корпус гимназии (Вектор, Интерес, Лицей, Черёмухино)."""
+
+    name = models.CharField('Название корпуса', max_length=100, unique=True)
+
+    class Meta:
+        verbose_name = 'Корпус'
+        verbose_name_plural = 'Корпуса'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 class Subject(models.Model):
     """Учебный предмет гимназии, к которому привязываются учителя и заявки."""
 
@@ -24,6 +38,11 @@ class User(AbstractUser):
 
     is_student = models.BooleanField('Ученик', default=False)
     is_head_teacher = models.BooleanField('Завуч (Администратор)', default=False)
+    corpuses = models.ManyToManyField(
+        Corpus,
+        verbose_name='Учебные корпуса',
+        blank=True,
+    )
     subjects = models.ManyToManyField(
         Subject,
         verbose_name='Преподаваемые предметы',
@@ -63,7 +82,7 @@ class User(AbstractUser):
     def register_failed_code_attempt(self) -> None:
         self.failed_code_attempts += 1
         if self.failed_code_attempts >= 5:
-            self.code_locked_until = timezone.now() + timedelta(minutes=15)
+            self.code_locked_until = timezone.now() + timedelta(minutes=1)
         self.save(update_fields=['failed_code_attempts', 'code_locked_until'])
 
     def reset_code_attempts(self) -> None:

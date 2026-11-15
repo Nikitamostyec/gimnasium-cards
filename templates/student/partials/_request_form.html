@@ -14,11 +14,27 @@
             {{ form.privilege_code }}
 
             {% if privilege.requires_subject %}
-                <div class="mb-3">
-                    <label for="{{ form.subject.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
-                        {{ form.subject.label }} <span class="text-danger">*</span>
-                    </label>
-                    {{ form.subject }}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label for="{{ form.corpus.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                            1. {{ form.corpus.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.corpus }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="{{ form.subject.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                            2. {{ form.subject.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.subject }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="{{ form.teacher.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                            3. {{ form.teacher.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.teacher }}
+                    </div>
                 </div>
             {% endif %}
 
@@ -64,3 +80,64 @@
         </form>
     </div>
 </div>
+
+{% if privilege.requires_subject %}
+{{ teachers_catalog|json_script:"teachers-catalog-data" }}
+<script>
+(function() {
+    const dataElement = document.getElementById('teachers-catalog-data');
+    const teachersData = dataElement ? JSON.parse(dataElement.textContent) : [];
+    const corpusSelect = document.getElementById('id_corpus');
+    const subjectSelect = document.getElementById('id_subject');
+    const teacherSelect = document.getElementById('id_teacher');
+    if (!corpusSelect || !subjectSelect || !teacherSelect) return;
+
+    function updateTeachersList() {
+        const corpusId = parseInt(corpusSelect.value, 10);
+        const subjectId = parseInt(subjectSelect.value, 10);
+
+        teacherSelect.innerHTML = '';
+
+        if (!corpusId || !subjectId) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '--- Сначала выберите корпус и предмет ---';
+            teacherSelect.appendChild(opt);
+            teacherSelect.disabled = true;
+            return;
+        }
+
+        const matched = teachersData.filter(t =>
+            t.corpuses.includes(corpusId) && t.subjects.includes(subjectId)
+        );
+
+        if (matched.length === 0) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = 'Нет учителей по выбранному предмету в этом корпусе';
+            teacherSelect.appendChild(opt);
+            teacherSelect.disabled = true;
+            return;
+        }
+
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.textContent = `--- Выберите учителя (найдено: ${matched.length}) ---`;
+        teacherSelect.appendChild(defaultOpt);
+
+        matched.forEach(teacher => {
+            const opt = document.createElement('option');
+            opt.value = teacher.id;
+            opt.textContent = teacher.name;
+            teacherSelect.appendChild(opt);
+        });
+
+        teacherSelect.disabled = false;
+    }
+
+    corpusSelect.addEventListener('change', updateTeachersList);
+    subjectSelect.addEventListener('change', updateTeachersList);
+    updateTeachersList();
+})();
+</script>
+{% endif %}

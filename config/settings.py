@@ -1,3 +1,4 @@
+import os
 import sys
 from pathlib import Path
 import environ
@@ -5,10 +6,8 @@ import environ
 # Базовая директория проекта
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Добавляем папку apps в PYTHONPATH, чтобы импортировать приложения напрямую
 sys.path.insert(0, str(BASE_DIR / 'apps'))
 
-# Инициализация чтения .env
 env = environ.Env(
     DEBUG=(bool, False)
 )
@@ -46,7 +45,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # Middleware для фиксации пользователя в журнале аудита
+    'core.middleware.SecurityHeadersMiddleware',
     'simple_history.middleware.HistoryRequestMiddleware',
 ]
 
@@ -55,7 +54,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # Общая папка шаблонов
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -72,17 +71,46 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # База данных читается автоматически из .env (SQLite или PostgreSQL)
 DATABASES = {
-    'default': env.db('DATABASE_URL',
-                      default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
+    'default': env.db(
+        'DATABASE_URL',
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+    )
 }
 
-# Указываем нашу кастомную модель пользователя (Учителя и Завучи)
+# Указываем нашу кастомную модель пользователя
 AUTH_USER_MODEL = 'users.User'
 
-# Настройки сессий для учеников (сессия живет 2 недели, если не нажали "Выйти")
-SESSION_COOKIE_AGE = 1209600
+# Строгая проверка сложности паролей
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {'min_length': 6},
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
 
-# Локализация под РФ (важно для валидации дат и админки)
+# Защита сессий и заголовков безопасности
+SESSION_COOKIE_AGE = 1209600
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+if not DEBUG:
+    SESSION_COOKIE_SECURE = env.bool('SESSION_COOKIE_SECURE', default=False)
+    CSRF_COOKIE_SECURE = env.bool('CSRF_COOKIE_SECURE', default=False)
+    SECURE_BROWSER_XSS_FILTER = True
+
+# Локализация под РФ
 LANGUAGE_CODE = 'ru-ru'
 TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
@@ -94,20 +122,36 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 WHITENOISE_USE_FINDERS = True
 
-
 if not DEBUG:
     STORAGES = {
-        "staticfiles": {
-            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
         },
     }
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Куда перенаправлять учителей при входе/выходе
+# Куда перенаправлять при входе/выходе
 LOGIN_URL = '/staff/login/'
 LOGIN_REDIRECT_URL = '/staff/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
-TEACHER_INVITE_CODE = 'GIM16-2026-TEACH'
+# Инвайт-код для учителей читается из .env
+TEACHER_INVITE_CODE = env('TEACHER_INVITE_CODE', default='GIM16-2026-TEACH')
+
+# Настройки электронной почты
+EMAIL_BACKEND = env(
+    'EMAIL_BACKEND',
+    default='django.core.mail.backends.console.EmailBackend',
+)
+EMAIL_HOST = env('EMAIL_HOST', default='smtp.mail.ru')
+EMAIL_PORT = env.int('EMAIL_PORT', default=465)
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=False)
+EMAIL_USE_SSL = env.bool('EMAIL_USE_SSL', default=True)
+EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = env(
+    'DEFAULT_FROM_EMAIL',
+    default=EMAIL_HOST_USER or 'gim16@school.ru',
+)

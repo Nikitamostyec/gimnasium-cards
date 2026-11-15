@@ -6,7 +6,7 @@ HOMOGLYPHS = str.maketrans({
     'ё': 'е',
 })
 
-CLASS_PATTERN = re.compile(r'^(?P<num>1[0-1]|[1-9])(?P<letter>[а-я])$')
+CLASS_PATTERN = re.compile(r'^(?P<num>1[0-1]|[1-9])(?P<letter>[а-я]{1,2})$')
 
 
 def normalize_text(text: str) -> str:

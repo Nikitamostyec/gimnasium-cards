@@ -3,9 +3,11 @@ from datetime import timedelta
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.utils import timezone
+from django.core.exceptions import ValidationError
 
-from users.models import Subject
+from users.models import Corpus, Subject, User
 from .models import Privilege
+from .selectors import validate_subject_for_grade
 
 
 class StudentAccountLoginForm(AuthenticationForm):
@@ -52,18 +54,37 @@ class ActivateCardForm(forms.Form):
 
 
 class CreatePrivilegeRequestForm(forms.Form):
-    """Форма создания заявки на использование привилегии."""
+    """Форма создания заявки на использование привилегии с выбором корпуса и учителя."""
 
     privilege_code = forms.ChoiceField(
         choices=Privilege.Code.choices,
         widget=forms.HiddenInput(),
+    )
+    corpus = forms.ModelChoiceField(
+        label='Выберите корпус',
+        queryset=Corpus.objects.all(),
+        required=False,
+        empty_label='--- Выберите корпус ---',
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_corpus'}),
     )
     subject = forms.ModelChoiceField(
         label='Выберите предмет',
         queryset=Subject.objects.all(),
         required=False,
         empty_label='--- Выберите предмет ---',
-        widget=forms.Select(attrs={'class': 'form-select'}),
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_subject'}),
+    )
+    teacher = forms.ModelChoiceField(
+        label='Выберите учителя-предметника',
+        queryset=User.objects.filter(
+            is_student=False,
+            is_head_teacher=False,
+            is_superuser=False,
+            is_active=True,
+        ).distinct(),
+        required=False,
+        empty_label='--- Сначала выберите корпус и предмет ---',
+        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_teacher'}),
     )
     target_date = forms.DateField(
         label='Желаемая дата освобождения',
@@ -90,15 +111,44 @@ class CreatePrivilegeRequestForm(forms.Form):
         ),
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, grade_num: int | None = None, **kwargs):
         super().__init__(*args, **kwargs)
+        self.grade_num = grade_num
         min_date = timezone.localdate() + timedelta(days=2)
         self.fields['target_date'].widget.attrs['min'] = min_date.isoformat()
+
 
     def clean(self) -> dict:
         cleaned_data = super().clean()
         code = cleaned_data.get('privilege_code')
         grade = cleaned_data.get('grade_to_remove')
+        corpus = cleaned_data.get('corpus')
+        subject = cleaned_data.get('subject')
+        if subject and self.grade_num is not None:
+            try:
+                validate_subject_for_grade(subject, self.grade_num)
+            except ValidationError as exc:
+                self.add_error('subject', exc.message)
+
+        teacher = cleaned_data.get('teacher')
+
+        privilege = Privilege.objects.filter(code=code).first()
+        if privilege and privilege.requires_subject:
+            if not corpus:
+                self.add_error('corpus', 'Выберите ваш учебный корпус.')
+            if not subject:
+                self.add_error('subject', 'Выберите учебный предмет.')
+            if not teacher:
+                self.add_error('teacher', 'Выберите вашего учителя.')
+
+            if corpus and subject and teacher:
+                teaches_in_corpus = teacher.corpuses.filter(pk=corpus.pk).exists()
+                teaches_subject = teacher.subjects.filter(pk=subject.pk).exists()
+                if not (teaches_in_corpus and teaches_subject):
+                    self.add_error(
+                        'teacher',
+                        'Выбранный учитель не ведёт этот предмет в указанном корпусе.',
+                    )
 
         if code == Privilege.Code.DROP_GRADE and grade is None:
             self.add_error(
@@ -127,4 +177,6 @@ class RejectRequestForm(forms.Form):
         reason = self.cleaned_data['reason'].strip()
         if not reason:
             raise forms.ValidationError('Причина отклонения не может быть пустой.')
+        if '<' in reason or '>' in reason:
+            raise forms.ValidationError('Причина не должна содержать HTML-теги (< или >).')
         return reason

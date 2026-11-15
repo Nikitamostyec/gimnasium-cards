@@ -11,42 +11,59 @@ class TrimesterAdmin(admin.ModelAdmin):
     list_display = ('name', 'is_active', 'created_at')
     list_filter = ('is_active',)
 
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.cards.exists():
+            return False
+        return super().has_delete_permission(request, obj)
+
 
 @admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
-    """Управление справочником учеников с возможностью сброса пароля."""
+    """Управление справочником учеников с безопасным сбросом доступа."""
 
     list_display = (
         'full_name',
         'grade_num',
         'grade_letter',
         'normalized_class',
-        'has_password',
+        'activation_code',
+        'has_user_account',
     )
     list_filter = ('grade_num', 'grade_letter')
-    search_fields = ('full_name', 'normalized_name')
-    readonly_fields = ('normalized_name', 'normalized_class', 'password')
-    actions = ['reset_student_passwords']
+    search_fields = ('full_name', 'normalized_name', 'activation_code')
+    readonly_fields = (
+        'normalized_name',
+        'normalized_class',
+        'password',
+        'activation_code',
+        'failed_attempts',
+        'locked_until',
+    )
+    actions = ['reset_student_access']
 
-    @admin.display(boolean=True, description='Пароль задан')
-    def has_password(self, obj: Student) -> bool:
-        """Отображает статус активации кабинета ученика в списке."""
-        return obj.has_password
+    @admin.display(boolean=True, description='Привязан аккаунт')
+    def has_user_account(self, obj: Student) -> bool:
+        return obj.user_id is not None
 
-    @admin.action(description='Сбросить пароль выбранным ученикам')
-    def reset_student_passwords(self, request, queryset):
-        """Очищает хэш пароля, позволяя ученику задать новый при следующем входе."""
-        updated = queryset.update(password='')
+    @admin.action(description='Сбросить привязку и выдать новый код карты')
+    def reset_student_access(self, request, queryset):
+        """Отвязывает аккаунт и генерирует новый одноразовый код активации карты."""
+        count = 0
+        for student in queryset:
+            student.user = None
+            student.save(update_fields=['user'])
+            student.reset_access()
+            count += 1
         self.message_user(
             request,
-            f'Пароли сброшены для {updated} учеников.',
+            f'Доступ сброшен для {count} учеников. Сгенерированы новые коды активации.',
             messages.SUCCESS,
         )
 
 
 @admin.register(CardAssignment)
 class CardAssignmentAdmin(SimpleHistoryAdmin):
-    """Управление картами учеников с фиксацией истории ручных изменений."""
+    """Управление картами учеников с защитой счётчиков от ручной накрутки."""
 
     list_display = (
         'student',
@@ -59,10 +76,20 @@ class CardAssignmentAdmin(SimpleHistoryAdmin):
     )
     list_filter = ('trimester', 'card_type')
     search_fields = ('student__full_name', 'student__normalized_name')
-    readonly_fields = ('limit',)
+    readonly_fields = (
+        'limit',
+        'used',
+        'grade_removal_credits',
+        'grade_removal_used_count',
+    )
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        actions.pop('delete_selected', None)
+        return actions
 
     def get_readonly_fields(self, request, obj=None):
-        """Запрещает изменение типа карты после ее создания."""
+        """Запрещает изменение типа карты, ученика и триместра после создания."""
         if obj:
             return self.readonly_fields + ('card_type', 'student', 'trimester')
         return self.readonly_fields
@@ -70,23 +97,52 @@ class CardAssignmentAdmin(SimpleHistoryAdmin):
 
 @admin.register(Privilege)
 class PrivilegeAdmin(admin.ModelAdmin):
-    """Управление справочником привилегий."""
+    """Управление справочником привилегий (удаление системных кодов запрещено)."""
 
     list_display = ('code', 'name', 'requires_subject', 'requires_date')
+    readonly_fields = ('code',)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(PrivilegeRequest)
 class PrivilegeRequestAdmin(SimpleHistoryAdmin):
-    """Управление заявками учеников с фиксацией истории изменений."""
+    """Просмотр заявок учеников (создание и ручная правка статусов в обход сервиса запрещены)."""
 
     list_display = (
         'id',
         'card',
         'privilege',
+        'corpus',
         'subject',
+        'teacher',
         'target_date',
         'status',
         'created_at',
     )
-    list_filter = ('status', 'privilege', 'card__trimester')
-    search_fields = ('card__student__full_name',)
+    list_filter = ('status', 'privilege', 'corpus', 'card__trimester')
+    search_fields = ('card__student__full_name', 'teacher__last_name')
+    readonly_fields = (
+        'card',
+        'privilege',
+        'corpus',
+        'subject',
+        'teacher',
+        'target_date',
+        'grade_to_remove',
+        'status',
+        'rejection_reason',
+        'spent_from_reserve',
+        'processed_by',
+        'created_at',
+        'updated_at',
+    )
+
+    def get_actions(self, request):
+        actions = super().get_actions(request)
+        actions.pop('delete_selected', None)
+        return actions
+
+    def has_add_permission(self, request):
+        return False

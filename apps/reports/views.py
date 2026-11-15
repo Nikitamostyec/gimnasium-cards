@@ -1,7 +1,8 @@
 from dataclasses import asdict
 
 from django.contrib import messages
-from django.http import HttpResponse
+from django.core.exceptions import PermissionDenied
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.views.generic import FormView
@@ -23,6 +24,11 @@ class StudentImportView(HeadTeacherRequiredMixin, FormView):
         """Парсит загруженный файл и сохраняет результат в сессии для подтверждения."""
         uploaded_file = form.cleaned_data['file']
         trimester = form.cleaned_data['trimester']
+
+        # Защита от слишком больших файлов (максимум 5 МБ)
+        if uploaded_file.size > 5 * 1024 * 1024:
+            form.add_error('file', 'Размер файла не должен превышать 5 МБ.')
+            return self.form_invalid(form)
 
         valid_rows, errors = parse_students_file(
             filename=uploaded_file.name,
@@ -50,6 +56,9 @@ class StudentImportView(HeadTeacherRequiredMixin, FormView):
 class StudentImportConfirmView(HeadTeacherRequiredMixin, View):
     """Подтверждает и записывает проверенные данные импорта в базу данных."""
 
+    def get(self, request, *args, **kwargs):
+        raise PermissionDenied('Прямой доступ к подтверждению импорта запрещён.')
+
     def post(self, request, *args, **kwargs):
         """Извлекает распарсенные строки из сессии и создает карты ученикам."""
         payload = request.session.pop('import_payload', None)
@@ -76,7 +85,9 @@ class ExportTrimesterReportView(HeadTeacherRequiredMixin, View):
         """Генерирует файл .xlsx по активному или указанному в параметре триместру."""
         trimester_id = request.GET.get('trimester_id')
         if trimester_id:
-            trimester = get_object_or_404(Trimester, id=trimester_id)
+            if not str(trimester_id).isdigit():
+                raise Http404('Некорректный идентификатор триместра.')
+            trimester = get_object_or_404(Trimester, id=int(trimester_id))
         else:
             trimester = Trimester.objects.filter(is_active=True).first()
 
@@ -115,6 +126,9 @@ class TrimesterManageView(HeadTeacherRequiredMixin, FormView):
 
 class TrimesterActivateView(HeadTeacherRequiredMixin, View):
     """Переключает активный триместр."""
+
+    def get(self, request, *args, **kwargs):
+        raise PermissionDenied('Прямой доступ к активации триместра запрещён.')
 
     def post(self, request, pk: int, *args, **kwargs):
         """Делает выбранный триместр активным, автоматически архивируя остальные."""
