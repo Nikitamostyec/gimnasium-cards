@@ -3,6 +3,7 @@
 from django.urls import path
 
 from .views import (
+    DownloadImportTemplateView,
     ExportTrimesterReportView,
     StudentImportConfirmView,
     StudentImportView,
@@ -26,4 +27,9 @@ urlpatterns = [
         TrimesterActivateView.as_view(),
         name='activate_trimester',
     ),
+    path(
+        'import/template/',
+        DownloadImportTemplateView.as_view(),
+        name='download_import_template',
+    )
 ]

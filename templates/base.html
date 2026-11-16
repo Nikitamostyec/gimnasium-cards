@@ -13,6 +13,185 @@
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
 </head>
 <body>
+    <style>
+        /* Уникальный стиль модального окна баг-репорта */
+        .bug-modal-glass {
+            background: radial-gradient(circle at 15% 15%, rgba(56, 189, 248, 0.16), transparent 45%),
+                        radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.18), transparent 45%),
+                        linear-gradient(145deg, #090d16 0%, #111827 60%, #0f172a 100%);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 28px;
+            color: #f8fafc;
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.65),
+                        0 0 30px rgba(59, 130, 246, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+    
+        .bug-modal-glass::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+        }
+    
+        .bug-icon-glow {
+            width: 56px;
+            height: 56px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(245, 158, 11, 0.25));
+            border: 1px solid rgba(248, 113, 113, 0.4);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.65rem;
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.25);
+            flex-shrink: 0;
+        }
+    
+        .status-dot-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #22c55e;
+            display: inline-block;
+            box-shadow: 0 0 0 rgba(34, 197, 94, 0.6);
+            animation: pulseGreen 2s infinite;
+        }
+    
+        @keyframes pulseGreen {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+    
+        .email-terminal-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            backdrop-filter: blur(12px);
+            border-radius: 18px;
+            padding: 1rem 1.25rem;
+            transition: border-color 0.25s ease, background 0.25s ease;
+        }
+    
+        .email-terminal-box:hover {
+            border-color: rgba(251, 191, 36, 0.45);
+            background: rgba(255, 255, 255, 0.08);
+        }
+    
+        .btn-gold-neon {
+            background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+            border: none;
+            color: #1c1917;
+            font-weight: 700;
+            border-radius: 14px;
+            padding: 0.75rem 1.25rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.4);
+        }
+    
+        .btn-gold-neon:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px -5px rgba(245, 158, 11, 0.55);
+            color: #000000;
+        }
+    
+        .tip-checklist-pill {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 0.55rem 0.85rem;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+        }
+    </style>
+    
+    <!-- Модальное окно баг-репорта -->
+    <div class="modal fade" id="bugReportModal" tabindex="-1" aria-labelledby="bugReportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bug-modal-glass p-2">
+                <div class="modal-header border-0 pb-0 pt-3 px-4 position-relative" style="z-index: 2;">
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill"
+                         style="background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.3); font-size: 0.75rem; color: #86efac;">
+                        <span class="status-dot-pulse"></span>
+                        <span class="fw-semibold">Разработчик на связи • 10Ф</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                </div>
+    
+                <div class="modal-body p-4 position-relative" style="z-index: 2;">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bug-icon-glow">🐞</div>
+                        <div>
+                            <h4 class="fw-bolder mb-1 text-white" id="bugReportModalLabel">
+                                Нашли баг на сайте?
+                            </h4>
+                            <p class="small text-white-50 mb-0">
+                                Помогите сделать сервис Гимназии № 16 ещё лучше
+                            </p>
+                        </div>
+                    </div>
+    
+                    <p class="small text-light text-opacity-75 mb-3 lh-base">
+                        Если кнопка сработала не так, вылезла ошибка или есть крутая идея — напишите разработчику на почту. Чтобы всё починилось быстрее, укажите:
+                    </p>
+    
+                    <div class="d-flex flex-column gap-2 mb-4">
+                        <div class="tip-checklist-pill d-flex align-items-center gap-2">
+                            <span class="text-warning">01</span>
+                            <span>Вашу роль (ученик, учитель или завуч) и страницу</span>
+                        </div>
+                        <div class="tip-checklist-pill d-flex align-items-center gap-2">
+                            <span class="text-warning">02</span>
+                            <span>Что именно пошло не так (желательно со скриншотом)</span>
+                        </div>
+                    </div>
+    
+                    <div class="email-terminal-box d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                        <div>
+                            <div class="text-uppercase text-white-50 fw-bold" style="font-size: 0.68rem; letter-spacing: 0.08em;">
+                                Прямая почта разработчика
+                            </div>
+                            <div class="fw-bold fs-6 text-warning font-monospace" id="devEmailText">mostyecnikita@gmail.com</div>
+                        </div>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-light rounded-pill px-3 fw-semibold"
+                                id="copyDevEmailBtn">
+                            📋 Скопировать
+                        </button>
+                    </div>
+    
+                    <div class="d-grid">
+                        <a href="mailto:mostyecnikita@://gmail.com"
+                           class="btn btn-gold-neon text-center text-decoration-none">
+                            ✉️ Написать разработчику
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+    document.getElementById('copyDevEmailBtn')?.addEventListener('click', function() {
+        const email = document.getElementById('devEmailText')?.textContent.trim();
+        if (email && navigator.clipboard) {
+            navigator.clipboard.writeText(email).then(() => {
+                const btn = this;
+                btn.innerHTML = '✅ Скопировано!';
+                btn.classList.remove('btn-outline-light');
+                btn.classList.add('btn-success');
+                setTimeout(() => {
+                    btn.innerHTML = '📋 Скопировать';
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-light');
+                }, 2200);
+            });
+        }
+    });
+    </script>    
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-glass sticky-top mb-4">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-white" href="/">
@@ -29,10 +208,21 @@
 
             <div class="collapse navbar-collapse" id="mainNavbar">
                 <ul class="navbar-nav ms-auto align-items-lg-center gap-2 pt-3 pt-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link fw-medium px-3 rounded-pill {% if request.resolver_match.url_name == 'about' %}active{% endif %}" href="{% url 'about' %}">
-                            О проекте
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle px-2 text-nowrap" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Инфо
                         </a>
+                        <ul class="dropdown-menu shadow border-0 rounded-4">
+                            <li><a class="dropdown-item" href="{% url 'guide' %}">✨ Правила и карты</a></li>
+                            <li><a class="dropdown-item" href="{% url 'about' %}">🏫 О проекте</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <button type="button" class="dropdown-item text-danger fw-medium" data-bs-toggle="modal" data-bs-target="#bugReportModal">
+                                    🐞 Нашли баг? Написать автору
+                                </button>
+                            </li>
+                    
+                        </ul>
                     </li>
 
                     {% if request.user.is_authenticated %}

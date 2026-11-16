@@ -80,12 +80,23 @@ def parse_students_file(
 
         raw_name, raw_class, raw_card = cells[0], cells[1], cells[2]
 
-        if row_num == 1 and ('фио' in raw_name.lower() or 'ученик' in raw_name.lower()):
+        # Пропускаем шапку таблицы (даже если перед ней были пустые строки)
+        header_check = raw_name.lower()
+        if not valid_rows and not errors and (
+            'фи' in header_check or 'ученик' in header_check or 'фамилия' in header_check
+        ):
+            continue
+
+        if '<' in raw_name or '>' in raw_name:
+            errors.append(f'Строка {row_num}: недопустимые символы в имени "{raw_name}".')
             continue
 
         norm_name = normalize_text(raw_name)
-        if len(norm_name.split()) < 2:
-            errors.append(f'Строка {row_num}: некорректное ФИО "{raw_name}".')
+        name_parts = norm_name.split()
+        if len(name_parts) != 2:
+            errors.append(
+                f'Строка {row_num}: укажите только Фамилию и Имя (2 слова), получено: "{raw_name}".'
+            )
             continue
 
         try:

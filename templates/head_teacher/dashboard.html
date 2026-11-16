@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="bento-card p-4 mb-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
         <div>
             <span class="text-muted small text-uppercase fw-semibold">Административный центр</span>
             <h2 class="fw-bold mb-1 mt-1">Панель управления завуча</h2>
@@ -12,14 +12,29 @@
         </div>
         <div class="d-flex flex-wrap gap-2">
             <a href="{% url 'reports:manage_trimesters' %}" class="btn btn-outline-dark btn-sm rounded-pill px-3 py-2 fw-semibold">
-                <i class="bi bi-calendar3 me-1"></i> Триместры
+                📅 Триместры
             </a>
             <a href="{% url 'reports:import_students' %}" class="btn btn-primary btn-sm rounded-pill px-3 py-2 fw-semibold shadow-sm">
-                <i class="bi bi-file-earmark-arrow-up me-1"></i> Импорт Excel / Word
+                📤 Импорт Excel / Word
             </a>
             <a href="{% url 'reports:export_report' %}" class="btn btn-success btn-sm rounded-pill px-3 py-2 fw-semibold shadow-sm">
-                <i class="bi bi-file-earmark-excel me-1"></i> Скачать отчёт (.xlsx)
+                📊 Скачать отчёт (.xlsx)
             </a>
+        </div>
+    </div>
+
+    <div class="pt-3 border-top">
+        <div class="input-group">
+            <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3">🔍</span>
+            <input type="text"
+                   id="headTeacherSearchInput"
+                   class="form-control bg-light border-start-0 border-end-0"
+                   placeholder="Быстрый поиск по ФИ ученика, классу (например, 10Ф), дате или привилегии...">
+            <button type="button"
+                    id="clearHeadTeacherSearchBtn"
+                    class="btn btn-light border border-start-0 rounded-end-pill px-3 text-muted d-none">
+                ✕ Сбросить
+            </button>
         </div>
     </div>
 </div>
@@ -32,7 +47,8 @@
 
 <div class="row g-3 mb-5">
     {% for req in new_requests %}
-        <div class="col-md-6">
+        <div class="col-md-6 head-searchable-item"
+             data-search="{{ req.card.student.full_name|lower }} {{ req.card.student.grade_num }}{{ req.card.student.grade_letter|lower }} {{ req.privilege.name|lower }} {% if req.target_date %}{{ req.target_date|date:'d.m.Y' }}{% endif %} #{{ req.pk }}">
             <div class="bento-card border-start border-4 border-primary h-100">
                 <div class="p-4 d-flex flex-column justify-content-between h-100">
                     <div>
@@ -53,26 +69,26 @@
                         {% if req.target_date %}
                             <div class="mb-3">
                                 <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-3 py-1 fw-semibold">
-                                    <i class="bi bi-calendar-event me-1"></i>Желаемая дата: {{ req.target_date|date:"d.m.Y" }}
+                                    📅 Желаемая дата: {{ req.target_date|date:"d.m.Y" }}
                                 </span>
                             </div>
                         {% endif %}
                         <div class="text-muted small mb-3">
-                            <i class="bi bi-clock me-1"></i>Подана: {{ req.created_at|date:"d.m.Y H:i" }}
+                            🕒 Подана: {{ req.created_at|date:"d.m.Y H:i" }}
                         </div>
                     </div>
 
                     <div class="d-flex flex-wrap align-items-center gap-2 pt-3 border-top border-light">
-                        <form method="post" action="{% url 'cards:change_request_status' req.pk 'take' %}">
+                        <form method="post" action="{% url 'cards:change_request_status' req.pk 'take' %}" onsubmit="this.querySelector('button').disabled=true;">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold">
-                                <i class="bi bi-play-fill me-1"></i>Взять в работу
+                                ▶ Взять в работу
                             </button>
                         </form>
-                        <form method="post" action="{% url 'cards:change_request_status' req.pk 'complete' %}">
+                        <form method="post" action="{% url 'cards:change_request_status' req.pk 'complete' %}" onsubmit="this.querySelector('button').disabled=true;">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold">
-                                <i class="bi bi-check-lg me-1"></i>Выполнено
+                                ✓ Выполнено
                             </button>
                         </form>
                         {% include 'components/reject_modal.html' %}
@@ -83,7 +99,6 @@
     {% empty %}
         <div class="col-12">
             <div class="bento-card text-muted text-center py-4">
-                <i class="bi bi-check2-all fs-2 d-block mb-1 opacity-50"></i>
                 Новых заявок на освобождение от занятий и практики пока нет.
             </div>
         </div>
@@ -98,7 +113,8 @@
 
 <div class="row g-3 mb-5">
     {% for req in in_progress_requests %}
-        <div class="col-md-6">
+        <div class="col-md-6 head-searchable-item"
+             data-search="{{ req.card.student.full_name|lower }} {{ req.card.student.grade_num }}{{ req.card.student.grade_letter|lower }} {{ req.privilege.name|lower }} {% if req.target_date %}{{ req.target_date|date:'d.m.Y' }}{% endif %} #{{ req.pk }}">
             <div class="bento-card border-start border-4 border-warning h-100">
                 <div class="p-4 d-flex flex-column justify-content-between h-100">
                     <div>
@@ -107,7 +123,7 @@
                                 {{ req.card.student.grade_num }}{{ req.card.student.grade_letter }} класс
                             </span>
                             <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-3 py-1 fw-semibold">
-                                <i class="bi bi-hourglass-split me-1"></i>В работе
+                                ⏳ В работе
                             </span>
                         </div>
                         <h5 class="fw-bold mb-1">{{ req.card.student.full_name }}</h5>
@@ -115,17 +131,17 @@
                         {% if req.target_date %}
                             <div class="mb-3">
                                 <span class="badge bg-light text-dark border rounded-pill px-3 py-1">
-                                    <i class="bi bi-calendar-event me-1"></i>Дата: {{ req.target_date|date:"d.m.Y" }}
+                                    📅 Дата: {{ req.target_date|date:"d.m.Y" }}
                                 </span>
                             </div>
                         {% endif %}
                     </div>
 
                     <div class="d-flex flex-wrap align-items-center gap-2 pt-3 border-top border-light">
-                        <form method="post" action="{% url 'cards:change_request_status' req.pk 'complete' %}">
+                        <form method="post" action="{% url 'cards:change_request_status' req.pk 'complete' %}" onsubmit="this.querySelector('button').disabled=true;">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold">
-                                <i class="bi bi-check-lg me-1"></i>Выполнено
+                                ✓ Выполнено
                             </button>
                         </form>
                         {% include 'components/reject_modal.html' %}
@@ -157,13 +173,15 @@
             </thead>
             <tbody>
                 {% for req in archived_requests %}
-                    <tr>
+                    <tr class="head-searchable-item"
+                        data-search="{{ req.card.student.full_name|lower }} {{ req.card.student.grade_num }}{{ req.card.student.grade_letter|lower }} {{ req.privilege.name|lower }} {% if req.target_date %}{{ req.target_date|date:'d.m.Y' }}{% endif %} #{{ req.pk }}">
                         <td class="ps-4">
                             <div class="fw-semibold">{{ req.card.student.full_name }}</div>
                             <div class="small text-muted">{{ req.card.student.grade_num }}{{ req.card.student.grade_letter }} класс</div>
                         </td>
                         <td class="fw-medium">{{ req.privilege.name }}</td>
                         <td>
+                            {% if req.target_date %}<span class="badge bg-light text-dark border rounded-pill">{{ req.target_date|date:"d.m.Y" }}</span>{% endif %}
                             {% if req.target_date %}<span class="badge bg-light text-dark border rounded-pill">{{ req.target_date|date:"d.m.Y" }}</span>{% endif %}
                             {% if req.status == 'REJECTED' and req.rejection_reason %}
                                 <div class="text-danger small mt-1 bg-danger-subtle p-2 rounded-3">
@@ -190,4 +208,32 @@
         </table>
     </div>
 </div>
+
+<script>
+(function() {
+    const searchInput = document.getElementById('headTeacherSearchInput');
+    const clearBtn = document.getElementById('clearHeadTeacherSearchBtn');
+    const items = document.querySelectorAll('.head-searchable-item');
+
+    function applyFilter() {
+        const query = (searchInput?.value || '').trim().toLowerCase();
+        if (clearBtn) {
+            clearBtn.classList.toggle('d-none', query.length === 0);
+        }
+        items.forEach(el => {
+            const hay = el.getAttribute('data-search') || '';
+            el.style.display = hay.includes(query) ? '' : 'none';
+        });
+    }
+
+    searchInput?.addEventListener('input', applyFilter);
+    clearBtn?.addEventListener('click', () => {
+        if (searchInput) {
+            searchInput.value = '';
+            applyFilter();
+            searchInput.focus();
+        }
+    });
+})();
+</script>
 {% endblock %}

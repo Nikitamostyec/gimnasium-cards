@@ -35,6 +35,14 @@ urlpatterns = [
         ),
         name='about',
     ),
+    path(
+        'guide/',
+        TemplateView.as_view(
+            template_name='guide.html',
+            http_method_names=['get', 'head', 'options'],
+        ),
+        name='guide',
+    ),
 ]
 
 

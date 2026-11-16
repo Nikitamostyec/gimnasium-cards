@@ -61,31 +61,26 @@ class CreatePrivilegeRequestForm(forms.Form):
         widget=forms.HiddenInput(),
     )
     corpus = forms.ModelChoiceField(
-        label='Выберите корпус',
         queryset=Corpus.objects.all(),
         required=False,
-        empty_label='--- Выберите корпус ---',
-        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_corpus'}),
+        empty_label='Выберите учебный корпус',
+        widget=forms.Select(attrs={'class': 'form-select form-select-lg rounded-4'}),
     )
     subject = forms.ModelChoiceField(
-        label='Выберите предмет',
         queryset=Subject.objects.all(),
         required=False,
-        empty_label='--- Выберите предмет ---',
-        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_subject'}),
+        empty_label='Выберите учебный предмет',
+        widget=forms.Select(attrs={'class': 'form-select form-select-lg rounded-4'}),
     )
     teacher = forms.ModelChoiceField(
-        label='Выберите учителя-предметника',
         queryset=User.objects.filter(
-            is_student=False,
-            is_head_teacher=False,
-            is_superuser=False,
-            is_active=True,
-        ).distinct(),
+            is_student=False, is_head_teacher=False, is_superuser=False, is_active=True
+        ),
         required=False,
-        empty_label='--- Сначала выберите корпус и предмет ---',
-        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_teacher'}),
+        empty_label='Сначала выберите корпус и предмет',
+        widget=forms.Select(attrs={'class': 'form-select form-select-lg rounded-4'}),
     )
+
     target_date = forms.DateField(
         label='Желаемая дата освобождения',
         required=False,

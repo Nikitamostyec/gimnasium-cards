@@ -17,13 +17,13 @@ def generate_trimester_report_xlsx(trimester: Trimester) -> bytes:
     header_fill = PatternFill(start_color='2B547E', end_color='2B547E', fill_type='solid')
 
     summary_headers = [
-        'ФИО ученика',
+        'ФИ ученика',
+        'Код активации',
         'Класс',
         'Тип карты',
         'Общий лимит',
         'Использовано',
         'Остаток',
-        'Отказов от оценок (из 2)',
     ]
     ws_summary.append(summary_headers)
     for cell in ws_summary[1]:
@@ -38,21 +38,26 @@ def generate_trimester_report_xlsx(trimester: Trimester) -> bytes:
     )
 
     for card in cards:
+        code_value = (
+            card.student.activation_code
+            if card.student.activation_code
+            else 'Активирована'
+        )
         ws_summary.append([
             card.student.full_name,
+            code_value,
             f'{card.student.grade_num}{card.student.grade_letter}',
             'Золотая' if card.card_type == CardAssignment.CardType.GOLD else 'Серебряная',
             card.limit,
             card.used,
             card.remaining_limit,
-            card.grade_removal_used_count,
         ])
 
     ws_requests = workbook.create_sheet(title='Детализация заявок')
     req_headers = [
         '№ Заявки',
         'Дата подачи',
-        'ФИО ученика',
+        'ФИ ученика',
         'Класс',
         'Привилегия',
         'Предмет / Дата',
@@ -104,3 +109,32 @@ def generate_trimester_report_xlsx(trimester: Trimester) -> bytes:
     buffer = io.BytesIO()
     workbook.save(buffer)
     return buffer.getvalue()
+
+
+def generate_import_template_xlsx() -> bytes:
+    """Формирует готовый шаблон Excel для импорта списков награждённых учеников."""
+    workbook = openpyxl.Workbook()
+    ws = workbook.active
+    ws.title = 'Список учеников'
+
+    header_font = Font(bold=True, color='FFFFFF')
+    header_fill = PatternFill(start_color='2B547E', end_color='2B547E', fill_type='solid')
+
+    headers = ['ФИ', 'Класс', 'Карта']
+    ws.append(headers)
+    for cell in ws[1]:
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = Alignment(horizontal='center')
+
+    ws.append(['Иванов Иван', '10Ф', 'Золотая'])
+    ws.append(['Петрова Анна', '8А', 'Серебряная'])
+
+    ws.column_dimensions['A'].width = 28
+    ws.column_dimensions['B'].width = 14
+    ws.column_dimensions['C'].width = 20
+
+    buffer = io.BytesIO()
+    workbook.save(buffer)
+    return buffer.getvalue()
+

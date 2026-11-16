@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+
+{% block title %}Гид по картам привилегий — Гимназия № 16{% endblock %}
+
+{% block content %}
+<style>
+    .hero-mesh {
+        background: radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.16), transparent 45%),
+                    radial-gradient(circle at 85% 30%, rgba(245, 158, 11, 0.18), transparent 45%),
+                    linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        border-radius: 28px;
+        color: #ffffff;
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-mesh::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        background-size: 24px 24px;
+        pointer-events: none;
+    }
+
+    /* 3D Карты привилегий */
+    .privilege-card-3d {
+        border-radius: 24px;
+        padding: 2rem;
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.35s ease;
+        min-height: 240px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .privilege-card-3d:hover {
+        transform: translateY(-8px) scale(1.015);
+    }
+    .privilege-card-3d::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.22) 50%, transparent 60%);
+        transform: rotate(25deg);
+        transition: transform 0.7s ease;
+        pointer-events: none;
+    }
+    .privilege-card-3d:hover::before {
+        transform: rotate(25deg) translate(30%, 30%);
+    }
+
+    .card-silver {
+        background: linear-gradient(135deg, #334155 0%, #64748b 50%, #94a3b8 100%);
+        box-shadow: 0 18px 35px -12px rgba(71, 85, 105, 0.45);
+    }
+    .card-gold {
+        background: linear-gradient(135deg, #92400e 0%, #d97706 45%, #fbbf24 100%);
+        box-shadow: 0 18px 35px -12px rgba(217, 119, 6, 0.5);
+    }
+
+    .card-chip {
+        width: 44px;
+        height: 32px;
+        border-radius: 7px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.45), rgba(255,255,255,0.15));
+        border: 1px solid rgba(255,255,255,0.35);
+    }
+
+    /* Bento-плитки привилегий */
+    .bento-rule-box {
+        background: #ffffff;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        border-radius: 22px;
+        padding: 1.5rem;
+        height: 100%;
+        transition: all 0.25s ease;
+    }
+    .bento-rule-box:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+        transform: translateY(-3px);
+    }
+    .rule-icon-badge {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Пошаговый таймлайн */
+    .step-pill {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #2563eb;
+        color: #fff;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+</style>
+
+<div class="my-4">
+    <!-- Hero секция -->
+    <div class="hero-mesh p-4 p-md-5 mb-5 shadow-lg">
+        <div class="row align-items-center position-relative" style="z-index: 2;">
+            <div class="col-lg-8">
+                <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fw-bold mb-3">
+                    🏆 Программа поощрения талантов • Гимназия № 16
+                </span>
+                <h1 class="display-5 fw-bold mb-3">
+                    Твои победы превращаются в реальные возможности
+                </h1>
+                <p class="lead text-white-50 mb-4">
+                    Побеждай в олимпиадах, защищай проекты на НПК, участвуй в жизни гимназии и получай персональную Серебряную или Золотую карту привилегий на весь триместр.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    {% if request.user.is_authenticated %}
+                        <a href="/" class="btn btn-warning btn-lg rounded-pill px-4 fw-bold text-dark shadow">
+                            Перейти в мой кабинет →
+                        </a>
+                    {% else %}
+                        <a href="{% url 'users:student_register' %}" class="btn btn-warning btn-lg rounded-pill px-4 fw-bold text-dark shadow">
+                            Создать кабинет ученика
+                        </a>
+                        <a href="{% url 'cards:student_login' %}" class="btn btn-outline-light btn-lg rounded-pill px-4">
+                            Войти с картой
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-lg-4 d-none d-lg-block text-center">
+                <div class="p-4 rounded-4 bg-white bg-opacity-10 border border-white border-opacity-10 backdrop-blur">
+                    <div class="display-4 fw-bold text-warning mb-1">6</div>
+                    <div class="small text-uppercase tracking-wider text-white-50 mb-3">видов привилегий</div>
+                    <hr class="border-white border-opacity-25">
+                    <div class="display-5 fw-bold text-info mb-1">100%</div>
+                    <div class="small text-uppercase text-white-50">цифровой учёт и прозрачность</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2 Уровня карт -->
+    <div class="mb-5">
+        <div class="d-flex flex-wrap justify-content-between align-items-end mb-4">
+            <div>
+                <span class="text-primary fw-bold small text-uppercase">Уровни наград</span>
+                <h2 class="fw-bold mb-0">Два вида карт гимназиста</h2>
+            </div>
+            <p class="text-muted small mb-0">Лимит обновляется в начале каждого нового триместра</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Серебряная -->
+            <div class="col-md-6">
+                <div class="privilege-card-3d card-silver">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="card-chip"></div>
+                        <span class="badge bg-black bg-opacity-25 rounded-pill px-3 py-2 fw-semibold">SILVER CARD</span>
+                    </div>
+                    <div class="my-3">
+                        <h3 class="fw-bold mb-2">Серебряная карта</h3>
+                        <p class="small text-white text-opacity-75 mb-0">
+                            Присуждается учащимся, завершившим триместр с отметками не ниже «8» по всем предметам (допускается не более двух отметок «7»), а также призёрам и победителям муниципального этапа ВсОШ.
+                        </p>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top border-white border-opacity-25">
+                        <span class="small text-uppercase opacity-75">Лимит на триместр</span>
+                        <span class="fs-4 fw-bold">2 привилегии</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Золотая -->
+            <div class="col-md-6">
+                <div class="privilege-card-3d card-gold">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="card-chip"></div>
+                        <span class="badge bg-black bg-opacity-25 rounded-pill px-3 py-2 fw-semibold">GOLD CARD</span>
+                    </div>
+                    <div class="my-3">
+                        <h3 class="fw-bold mb-2">Золотая карта</h3>
+                        <p class="small text-white text-opacity-90 mb-0">
+                            Присуждается учащимся, завершившим триместр с отметками «8» и выше по всем предметам (допускается не более одной отметки «7»), а также призёрам и победителям регионального этапа ВсОШ.
+                        </p>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top border-white border-opacity-25">
+                        <span class="small text-uppercase opacity-75">Лимит на триместр</span>
+                        <span class="fs-4 fw-bold">3 привилегии</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    <!-- Bento сетка: 6 Привилегий и правила -->
+    <div class="mb-5">
+        <span class="text-primary fw-bold small text-uppercase">Арсенал возможностей</span>
+        <h2 class="fw-bold mb-4">Что даёт карта и как работают правила</h2>
+
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-4">
+                <div class="bento-rule-box">
+                    <div class="rule-icon-badge bg-primary-subtle text-primary">📅</div>
+                    <h5 class="fw-bold">1. Свободный день</h5>
+                    <p class="text-muted small mb-0">
+                        Освобождение от посещения учебных занятий на 1 день по выбору. Заявка подаётся завучу <strong>не позднее чем за 2 календарных дня</strong> до выбранной даты.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="bento-rule-box">
+                    <div class="rule-icon-badge bg-success-subtle text-success">🌟</div>
+                    <h5 class="fw-bold">2. Отметка «9» в журнал</h5>
+                    <p class="text-muted small mb-0">
+                        Возможность получить дополнительную высокую отметку по выбранному предмету у своего учителя-предметника.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="bento-rule-box">
+                    <div class="rule-icon-badge bg-warning-subtle text-warning-emphasis">🛡️</div>
+                    <h5 class="fw-bold">3. Отказ от отметки (2×1)</h5>
+                    <p class="text-muted small mb-0">
+                        Можно отказаться от выставления неудовлетворительной или нежелательной отметки. <strong>Бонус:</strong> за 1 балл карты даётся сразу <strong>2 попытки</strong> за триместр!
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="bento-rule-box">
+                    <div class="rule-icon-badge bg-danger-subtle text-danger">📝</div>
+                    <h5 class="fw-bold">4. Освобождение от написания одной контрольной работы</h5>
+                    <p class="text-muted small mb-0">
+                        Позволяет не писать одну плановую контрольную работу по выбранному предмету. Согласовывается напрямую с учителем-предметником.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="bento-rule-box">
+                    <div class="rule-icon-badge bg-info-subtle text-info-emphasis">🎯</div>
+                    <h5 class="fw-bold">5. Освобождение от сдачи «образовательного минимума»</h5>
+                    <p class="text-muted small mb-0">
+                        Освобождает от обязательной сдачи «образовательного минимума» по выбранному предмету в текущем триместре.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-lg-4">
+                <div class="bento-rule-box">
+                    <div class="rule-icon-badge bg-secondary-subtle text-secondary">🌿</div>
+                    <h5 class="fw-bold">6. Без летней практики</h5>
+                    <p class="text-muted small mb-0">
+                        Полное освобождение от летней трудовой практики. Доступно исключительно для учеников <strong>7–10 классов</strong>.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bento-card p-4 p-md-5 bg-light border-0">
+        <h3 class="fw-bold mb-4 text-center">Как активировать и использовать карту</h3>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="d-flex gap-3">
+                    <div class="step-pill">1</div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Получи код</h6>
+                        <p class="text-muted small mb-0">Завуч загружает списки награждённых и выдаёт тебе персональный секретный код карты.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex gap-3">
+                    <div class="step-pill">2</div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Привяжи к профилю</h6>
+                        <p class="text-muted small mb-0">Зарегистрируй личный кабинет ученика и активируй карту одним вводом кода.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex gap-3">
+                    <div class="step-pill">3</div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Отправь заявку</h6>
+                        <p class="text-muted small mb-0">Выбери привилегию, свой корпус, предмет и учителя — педагог сразу получит уведомление на почту.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex gap-3">
+                    <div class="step-pill">4</div>
+                    <div>
+                        <h6 class="fw-bold mb-1">Отслеживай статус</h6>
+                        <p class="text-muted small mb-0">Следи за статусом «Новая → В работе → Выполнено». При отклонении балл автоматически вернётся на карту.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

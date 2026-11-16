@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="bento-card p-4 mb-4">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
         <div>
             <span class="text-muted small text-uppercase fw-semibold">Рабочее место преподавателя</span>
             <h2 class="fw-bold mb-2 mt-1">Заявки по моим предметам</h2>
@@ -32,6 +32,22 @@
             </div>
         </div>
     </div>
+
+    <!-- Мгновенный поиск по ФИ, классу, предмету или корпусу -->
+    <div class="pt-3 border-top">
+        <div class="input-group">
+            <span class="input-group-text bg-light border-end-0 rounded-start-pill ps-3">🔍</span>
+            <input type="text"
+                   id="teacherSearchInput"
+                   class="form-control bg-light border-start-0 border-end-0"
+                   placeholder="Быстрый поиск по ученику, классу (например, 10Ф), предмету или привилегии...">
+            <button type="button"
+                    id="clearTeacherSearchBtn"
+                    class="btn btn-light border border-start-0 rounded-end-pill px-3 text-muted d-none">
+                ✕ Сбросить
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- 1. НОВЫЕ ЗАЯВКИ -->
@@ -40,16 +56,24 @@
     <span class="badge bg-primary rounded-pill fs-6">{{ new_requests.count }}</span>
 </div>
 
-<div class="row g-3 mb-5">
+<div class="row g-3 mb-5" id="teacherNewList">
     {% for req in new_requests %}
-        <div class="col-md-6">
+        <div class="col-md-6 teacher-searchable-item"
+             data-search="{{ req.card.student.full_name|lower }} {{ req.card.student.grade_num }}{{ req.card.student.grade_letter|lower }} {{ req.privilege.name|lower }} {% if req.subject %}{{ req.subject.name|lower }}{% endif %} {% if req.corpus %}{{ req.corpus.name|lower }}{% endif %} #{{ req.pk }}">
             <div class="bento-card border-start border-4 border-primary h-100">
                 <div class="p-4 d-flex flex-column justify-content-between h-100">
                     <div>
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="badge bg-dark rounded-pill px-3 py-1">
-                                {{ req.card.student.grade_num }}{{ req.card.student.grade_letter }} класс
-                            </span>
+                            <div class="d-flex flex-wrap gap-1">
+                                <span class="badge bg-dark rounded-pill px-3 py-1">
+                                    {{ req.card.student.grade_num }}{{ req.card.student.grade_letter }} класс
+                                </span>
+                                {% if req.corpus %}
+                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-1">
+                                        🏫 {{ req.corpus.name }}
+                                    </span>
+                                {% endif %}
+                            </div>
                             {% if req.card.card_type == 'GOLD' %}
                                 <span class="badge badge-card-gold rounded-pill">★ Золотая (ост. {{ req.card.remaining_limit }})</span>
                             {% else %}
@@ -63,7 +87,7 @@
                         <div class="mb-3 d-flex flex-wrap gap-2">
                             {% if req.subject %}
                                 <span class="badge bg-light text-dark border rounded-pill px-3 py-1">
-                                    <i class="bi bi-book me-1 text-primary"></i>{{ req.subject.name }}
+                                    📚 {{ req.subject.name }}
                                 </span>
                             {% endif %}
                             {% if req.grade_to_remove %}
@@ -73,26 +97,26 @@
                             {% endif %}
                             {% if req.target_date %}
                                 <span class="badge bg-light text-dark border rounded-pill px-3 py-1">
-                                    <i class="bi bi-calendar-event me-1"></i>{{ req.target_date|date:"d.m.Y" }}
+                                    📅 {{ req.target_date|date:"d.m.Y" }}
                                 </span>
                             {% endif %}
                         </div>
                         <div class="text-muted small mb-3">
-                            <i class="bi bi-clock me-1"></i>Подана: {{ req.created_at|date:"d.m.Y H:i" }}
+                            🕒 Подана: {{ req.created_at|date:"d.m.Y H:i" }}
                         </div>
                     </div>
 
                     <div class="d-flex flex-wrap align-items-center gap-2 pt-3 border-top border-light">
-                        <form method="post" action="{% url 'cards:change_request_status' req.pk 'take' %}">
+                        <form method="post" action="{% url 'cards:change_request_status' req.pk 'take' %}" onsubmit="this.querySelector('button').disabled=true;">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold">
-                                <i class="bi bi-play-fill me-1"></i>Взять в работу
+                                ▶ Взять в работу
                             </button>
                         </form>
-                        <form method="post" action="{% url 'cards:change_request_status' req.pk 'complete' %}">
+                        <form method="post" action="{% url 'cards:change_request_status' req.pk 'complete' %}" onsubmit="this.querySelector('button').disabled=true;">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold">
-                                <i class="bi bi-check-lg me-1"></i>Выполнено
+                                ✓ Выполнено
                             </button>
                         </form>
                         {% include 'components/reject_modal.html' %}
@@ -103,7 +127,6 @@
     {% empty %}
         <div class="col-12">
             <div class="bento-card text-muted text-center py-4">
-                <i class="bi bi-check2-all fs-2 d-block mb-1 opacity-50"></i>
                 Новых заявок по вашим предметам пока нет.
             </div>
         </div>
@@ -116,18 +139,26 @@
     <span class="badge bg-warning text-dark rounded-pill fs-6">{{ in_progress_requests.count }}</span>
 </div>
 
-<div class="row g-3 mb-5">
+<div class="row g-3 mb-5" id="teacherInProgressList">
     {% for req in in_progress_requests %}
-        <div class="col-md-6">
+        <div class="col-md-6 teacher-searchable-item"
+             data-search="{{ req.card.student.full_name|lower }} {{ req.card.student.grade_num }}{{ req.card.student.grade_letter|lower }} {{ req.privilege.name|lower }} {% if req.subject %}{{ req.subject.name|lower }}{% endif %} {% if req.corpus %}{{ req.corpus.name|lower }}{% endif %} #{{ req.pk }}">
             <div class="bento-card border-start border-4 border-warning h-100">
                 <div class="p-4 d-flex flex-column justify-content-between h-100">
                     <div>
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="badge bg-dark rounded-pill px-3 py-1">
-                                {{ req.card.student.grade_num }}{{ req.card.student.grade_letter }} класс
-                            </span>
+                            <div class="d-flex flex-wrap gap-1">
+                                <span class="badge bg-dark rounded-pill px-3 py-1">
+                                    {{ req.card.student.grade_num }}{{ req.card.student.grade_letter }} класс
+                                </span>
+                                {% if req.corpus %}
+                                    <span class="badge bg-light text-dark border rounded-pill px-2 py-1">
+                                        🏫 {{ req.corpus.name }}
+                                    </span>
+                                {% endif %}
+                            </div>
                             <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-3 py-1 fw-semibold">
-                                <i class="bi bi-hourglass-split me-1"></i>В работе
+                                ⏳ В работе
                             </span>
                         </div>
                         <h5 class="fw-bold mb-1">{{ req.card.student.full_name }}</h5>
@@ -135,7 +166,7 @@
                         <div class="mb-3 d-flex flex-wrap gap-2">
                             {% if req.subject %}
                                 <span class="badge bg-light text-dark border rounded-pill px-3 py-1">
-                                    <i class="bi bi-book me-1 text-primary"></i>{{ req.subject.name }}
+                                    📚 {{ req.subject.name }}
                                 </span>
                             {% endif %}
                             {% if req.grade_to_remove %}
@@ -145,17 +176,17 @@
                             {% endif %}
                             {% if req.target_date %}
                                 <span class="badge bg-light text-dark border rounded-pill px-3 py-1">
-                                    <i class="bi bi-calendar-event me-1"></i>{{ req.target_date|date:"d.m.Y" }}
+                                    📅 {{ req.target_date|date:"d.m.Y" }}
                                 </span>
                             {% endif %}
                         </div>
                     </div>
 
                     <div class="d-flex flex-wrap align-items-center gap-2 pt-3 border-top border-light">
-                        <form method="post" action="{% url 'cards:change_request_status' req.pk 'complete' %}">
+                        <form method="post" action="{% url 'cards:change_request_status' req.pk 'complete' %}" onsubmit="this.querySelector('button').disabled=true;">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-success btn-sm rounded-pill px-3 fw-semibold">
-                                <i class="bi bi-check-lg me-1"></i>Выполнено
+                                ✓ Выполнено
                             </button>
                         </form>
                         {% include 'components/reject_modal.html' %}
@@ -172,7 +203,6 @@
     {% endfor %}
 </div>
 
-<!-- 3. АРХИВ ЗАЯВОК -->
 <h4 class="fw-bold mb-3">Архив заявок</h4>
 <div class="bento-card overflow-hidden mb-4">
     <div class="table-responsive">
@@ -187,10 +217,14 @@
             </thead>
             <tbody>
                 {% for req in archived_requests %}
-                    <tr>
+                    <tr class="teacher-searchable-item"
+                        data-search="{{ req.card.student.full_name|lower }} {{ req.card.student.grade_num }}{{ req.card.student.grade_letter|lower }} {{ req.privilege.name|lower }} {% if req.subject %}{{ req.subject.name|lower }}{% endif %} {% if req.corpus %}{{ req.corpus.name|lower }}{% endif %} #{{ req.pk }}">
                         <td class="ps-4">
                             <div class="fw-semibold">{{ req.card.student.full_name }}</div>
-                            <div class="small text-muted">{{ req.card.student.grade_num }}{{ req.card.student.grade_letter }} класс</div>
+                            <div class="small text-muted">
+                                {{ req.card.student.grade_num }}{{ req.card.student.grade_letter }} класс
+                                {% if req.corpus %}• {{ req.corpus.name }}{% endif %}
+                            </div>
                         </td>
                         <td class="fw-medium">{{ req.privilege.name }}</td>
                         <td>
@@ -224,4 +258,32 @@
         </table>
     </div>
 </div>
+
+<script>
+(function() {
+    const searchInput = document.getElementById('teacherSearchInput');
+    const clearBtn = document.getElementById('clearTeacherSearchBtn');
+    const items = document.querySelectorAll('.teacher-searchable-item');
+
+    function applyFilter() {
+        const query = (searchInput?.value || '').trim().toLowerCase();
+        if (clearBtn) {
+            clearBtn.classList.toggle('d-none', query.length === 0);
+        }
+        items.forEach(el => {
+            const hay = el.getAttribute('data-search') || '';
+            el.style.display = hay.includes(query) ? '' : 'none';
+        });
+    }
+
+    searchInput?.addEventListener('input', applyFilter);
+    clearBtn?.addEventListener('click', () => {
+        if (searchInput) {
+            searchInput.value = '';
+            applyFilter();
+            searchInput.focus();
+        }
+    });
+})();
+</script>
 {% endblock %}

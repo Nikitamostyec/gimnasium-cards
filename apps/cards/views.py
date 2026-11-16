@@ -126,7 +126,9 @@ class StudentDashboardView(StudentRequiredMixin, TemplateView):
         )
 
     def get_context_data(self, **kwargs):
+        RequestService.process_stale_requests()
         context = super().get_context_data(**kwargs)
+
         card = self.get_active_card()
         context['card'] = card
         context['activate_form'] = ActivateCardForm()
@@ -213,6 +215,30 @@ class StudentCreateRequestView(StudentRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         raise PermissionDenied('Прямой доступ к обработчику заявок запрещён.')
 
+    def _render_dashboard_with_form_error(self, request, card, privilege_code: str, form):
+        privileges_info = get_available_privileges_for_card(card)
+        selected_priv = Privilege.objects.filter(code=privilege_code).first()
+        requests_qs = (
+            PrivilegeRequest.objects.select_related(
+                'privilege', 'subject', 'teacher', 'corpus'
+            )
+            .filter(card=card)
+            .order_by('-created_at')
+        )
+        return render(
+            request,
+            'student/dashboard.html',
+            {
+                'card': card,
+                'activate_form': ActivateCardForm(),
+                'teachers_catalog': get_teachers_catalog(),
+                'privileges_info': privileges_info,
+                'requests': requests_qs,
+                'selected_privilege': selected_priv,
+                'form': form,
+            },
+        )
+
     def post(self, request, *args, **kwargs):
         student_profile = getattr(request.user, 'student_profile', None)
         card = (
@@ -226,11 +252,10 @@ class StudentCreateRequestView(StudentRequiredMixin, View):
             raise PermissionDenied('У вас нет активной карты привилегий.')
 
         form = CreatePrivilegeRequestForm(request.POST, grade_num=card.student.grade_num)
+        raw_code = request.POST.get('privilege_code', '')
+
         if not form.is_valid():
-            for errors in form.errors.values():
-                for error in errors:
-                    messages.error(request, error)
-            return redirect('cards:student_dashboard')
+            return self._render_dashboard_with_form_error(request, card, raw_code, form)
 
         privilege_code = form.cleaned_data['privilege_code']
         available_map = {
@@ -254,10 +279,11 @@ class StudentCreateRequestView(StudentRequiredMixin, View):
                 grade_to_remove=form.cleaned_data.get('grade_to_remove'),
             )
             messages.success(request, 'Заявка успешно отправлена!')
+            return redirect('cards:student_dashboard')
         except ValidationError as exc:
-            messages.error(request, exc.message)
+            form.add_error(None, exc.message)
+            return self._render_dashboard_with_form_error(request, card, privilege_code, form)
 
-        return redirect('cards:student_dashboard')
 
 
 class StudentRequestFormPartialView(StudentRequiredMixin, View):
@@ -309,6 +335,7 @@ class TeacherDashboardView(TeacherRequiredMixin, TemplateView):
     template_name = 'teacher/dashboard.html'
 
     def get_context_data(self, **kwargs):
+        RequestService.process_stale_requests()
         context = super().get_context_data(**kwargs)
         all_requests = get_teacher_requests(self.request.user)
         context['new_requests'] = all_requests.filter(
@@ -333,6 +360,7 @@ class HeadTeacherDashboardView(HeadTeacherRequiredMixin, TemplateView):
     template_name = 'head_teacher/dashboard.html'
 
     def get_context_data(self, **kwargs):
+        RequestService.process_stale_requests()
         context = super().get_context_data(**kwargs)
         all_requests = get_head_teacher_requests()
         context['new_requests'] = all_requests.filter(

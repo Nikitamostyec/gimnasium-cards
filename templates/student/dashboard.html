@@ -3,6 +3,69 @@
 {% block title %}Мой кабинет — Гимназия № 16{% endblock %}
 
 {% block content %}
+<style>
+    .priv-tile {
+        background: #ffffff;
+        border: 1.5px solid rgba(15, 23, 42, 0.08);
+        border-radius: 22px;
+        padding: 1.35rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+        position: relative;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+    }
+
+    .priv-tile-active:hover {
+        transform: translateY(-4px);
+        border-color: #3b82f6;
+        box-shadow: 0 14px 28px rgba(37, 99, 235, 0.1);
+    }
+
+    .priv-tile-selected {
+        border-color: #2563eb;
+        background: #eff6ff;
+        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.12);
+    }
+
+    .priv-tile-disabled {
+        background: #f8fafc;
+        opacity: 0.72;
+    }
+
+    .priv-emoji-box {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+        flex-shrink: 0;
+    }
+
+    .priv-action-link {
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #2563eb;
+        padding: 0.4rem 0.9rem;
+        border-radius: 999px;
+        background: #eff6ff;
+        transition: all 0.2s ease;
+    }
+
+    .priv-tile-active:hover .priv-action-link {
+        background: #2563eb;
+        color: #ffffff;
+    }
+</style>
+
 <div class="row g-4 mb-4 align-items-stretch">
     <!-- Левая колонка: Визуальная Золотая/Серебряная карта -->
     <div class="col-lg-5">
@@ -59,22 +122,22 @@
                 <div>
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-bold mb-0">Баланс привилегий на триместр</h5>
-                        <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">
-                            Активна
+                        <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2 fw-semibold">
+                            ● Активна
                         </span>
                     </div>
                     {% include 'components/_progress_bar.html' %}
                 </div>
-                <div class="bg-light rounded-3 p-3 mt-3 small text-muted d-flex align-items-start gap-2">
-                    <i class="bi bi-lightbulb text-warning fs-5"></i>
+                <div class="bg-light rounded-4 p-3 mt-3 small text-muted d-flex align-items-center gap-2">
+                    <span class="fs-5">💡</span>
                     <div>
-                        Каждую привилегию можно использовать <strong>1 раз</strong> за триместр. Если учитель или завуч отклонит заявку, лимит автоматически вернётся на карту.
+                        Каждую привилегию можно использовать <strong>1 раз</strong> за триместр. При отклонении заявки лимит автоматически вернётся на карту.
                     </div>
                 </div>
             {% else %}
                 <div class="my-auto text-center py-3">
-                    <i class="bi bi-credit-card-2-back fs-1 text-muted"></i>
-                    <p class="text-muted mb-0 mt-2">Активируйте карту ниже, чтобы увидеть доступные привилегии и лимиты.</p>
+                    <div class="fs-1 mb-2">💳</div>
+                    <p class="text-muted mb-0">Активируйте карту ниже по секретному коду от завуча, чтобы открыть доступ к привилегиям.</p>
                 </div>
             {% endif %}
         </div>
@@ -82,157 +145,175 @@
 </div>
 
 {% if card %}
+    <!-- Форма оформления заявки (появляется сразу под картой при выборе) -->
     {% if selected_privilege and form %}
         <div id="request-form-container" class="mb-4">
             {% include 'student/partials/_request_form.html' with privilege=selected_privilege form=form %}
         </div>
     {% endif %}
 
-    <div class="d-flex justify-content-between align-items-center mb-3 mt-2">
-        <h4 class="fw-bold mb-0">Каталог привилегий</h4>
-        <span class="text-muted small">Выберите нужную опцию</span>
+    <!-- Компактная сетка привилегий 3x2 -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 mt-2">
+        <div>
+            <h4 class="fw-bold mb-0">Каталог привилегий</h4>
+        </div>
+        <span class="text-muted small">Нажмите на доступную карточку, чтобы оформить заявку</span>
     </div>
 
     <div class="row g-3 mb-5">
         {% for item in privileges_info %}
-            <div class="col-md-6">
-                <div class="privilege-card h-100 {% if not item.is_available %}privilege-disabled{% endif %}">
-                    <div class="card-body d-flex flex-column justify-content-between p-4">
-                        <div>
-                            <div class="d-flex align-items-start gap-3 mb-3">
-                                <div class="privilege-icon {% if item.privilege.requires_subject %}bg-primary-subtle text-primary{% else %}bg-warning-subtle text-warning-emphasis{% endif %}">
-                                    {% if item.privilege.requires_subject %}
-                                        <i class="bi bi-journal-check"></i>
-                                    {% else %}
-                                        <i class="bi bi-building-check"></i>
-                                    {% endif %}
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1 lh-base">{{ item.privilege.name }}</h6>
-                                    <div class="d-flex flex-wrap gap-1 mt-2">
-                                        {% if item.privilege.requires_subject %}
-                                            <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium">Учитель-предметник</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary-subtle text-secondary rounded-pill fw-medium">Завуч</span>
-                                        {% endif %}
+            <div class="col-md-6 col-lg-4">
+                <div class="priv-tile {% if item.is_available %}priv-tile-active{% else %}priv-tile-disabled{% endif %} {% if selected_privilege and selected_privilege.code == item.privilege.code %}priv-tile-selected{% endif %}">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                            <div class="priv-emoji-box
+                                {% if item.privilege.code == 'SKIP_DAY' %}bg-primary-subtle
+                                {% elif item.privilege.code == 'SKIP_TEST' %}bg-danger-subtle
+                                {% elif item.privilege.code == 'SKIP_MINIMUM' %}bg-info-subtle
+                                {% elif item.privilege.code == 'ADD_NINE' %}bg-success-subtle
+                                {% elif item.privilege.code == 'DROP_GRADE' %}bg-warning-subtle
+                                {% else %}bg-secondary-subtle{% endif %}">
+                                {% if item.privilege.code == 'SKIP_DAY' %}📅
+                                {% elif item.privilege.code == 'SKIP_TEST' %}📝
+                                {% elif item.privilege.code == 'SKIP_MIN' %}🎯
+                                {% elif item.privilege.code == 'ADD_NINE' %}🌟
+                                {% elif item.privilege.code == 'DROP_GRADE' %}🛡️
+                                {% else %}🌿{% endif %}
+                            </div>
 
-                                        {% if item.privilege.code == 'DROP_GRADE' %}
-                                            <span class="badge bg-warning-subtle text-dark rounded-pill fw-semibold">
-                                                Пакет: {{ card.grade_removal_used_count }}/2
-                                            </span>
-                                        {% endif %}
-                                    </div>
-                                </div>
+                            <div class="d-flex flex-wrap justify-content-end gap-1">
+                                {% if item.privilege.requires_subject %}
+                                    <span class="badge bg-primary-subtle text-primary rounded-pill fw-medium">Учитель</span>
+                                {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary rounded-pill fw-medium">Завуч</span>
+                                {% endif %}
+
+                                {% if item.privilege.code == 'DROP_GRADE' %}
+                                    <span class="badge bg-warning text-dark rounded-pill fw-bold">
+                                        {{ card.grade_removal_used_count }}/2
+                                    </span>
+                                {% endif %}
                             </div>
                         </div>
 
-                        <div class="mt-2 pt-2 border-top border-light">
-                            {% if item.is_available %}
-                                <a href="?privilege={{ item.privilege.code }}#request-form-container"
-                                   class="btn btn-primary btn-sm w-100 rounded-pill py-2 fw-semibold">
-                                    Выбрать привилегию <i class="bi bi-arrow-right ms-1"></i>
-                                </a>
+                        <h6 class="fw-bold mb-2 lh-snug text-dark">{{ item.privilege.name }}</h6>
+                    </div>
+
+                    <div class="pt-3 mt-2 border-top border-light d-flex align-items-center justify-content-between">
+                        {% if item.is_available %}
+                            {% if selected_privilege and selected_privilege.code == item.privilege.code %}
+                                <span class="badge bg-primary text-white rounded-pill px-3 py-2">
+                                    ✓ Форма открыта выше
+                                </span>
                             {% else %}
-                                <button type="button" class="btn btn-light text-muted btn-sm w-100 rounded-pill py-2 fw-medium" disabled>
-                                    <i class="bi bi-lock me-1"></i> {{ item.unavailable_reason }}
-                                </button>
+                                <span class="small text-muted">Доступно</span>
+                                <a href="?privilege={{ item.privilege.code }}#request-form-container"
+                                   class="priv-action-link stretched-link">
+                                    Выбрать →
+                                </a>
                             {% endif %}
+                        {% else %}
+                            <span class="small text-muted fw-medium">
+                                🔒 {{ item.unavailable_reason }}
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
+                {% endfor %}
+            </div>
+        
+            <h4 class="fw-bold mb-3">История моих заявок</h4>
+            <div class="bento-card overflow-hidden mb-4">
+                <div class="table-responsive">
+                    <table class="table table-modern table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">№</th>
+                                <th>Привилегия</th>
+                                <th>Детали</th>
+                                <th>Дата подачи</th>
+                                <th class="pe-4">Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for req in requests %}
+                                <tr>
+                                    <td class="ps-4 text-muted fw-medium">#{{ req.pk }}</td>
+                                    <td class="fw-semibold">{{ req.privilege.name }}</td>
+                                    <td>
+                                        {% if req.corpus %}
+                                            <span class="badge bg-light text-dark border rounded-pill">{{ req.corpus.name }}</span>
+                                        {% endif %}
+                                        {% if req.subject %}
+                                            <span class="badge bg-primary-subtle text-primary rounded-pill">{{ req.subject.name }}</span>
+                                        {% endif %}
+                                        {% if req.teacher %}
+                                            <span class="small text-muted ms-1">{{ req.teacher.get_full_name|default:req.teacher.username }}</span>
+                                        {% endif %}
+                                        {% if req.grade_to_remove %}
+                                            <span class="badge bg-warning-subtle text-dark border rounded-pill">Оценка: {{ req.grade_to_remove }}</span>
+                                        {% endif %}
+                                        {% if req.target_date %}
+                                            <span class="badge bg-light text-dark border rounded-pill">{{ req.target_date|date:"d.m.Y" }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-muted small">{{ req.created_at|date:"d.m.Y H:i" }}</td>
+                                    <td class="pe-4">
+                                        {% if req.status == 'NEW' %}
+                                            <span class="badge bg-primary-subtle text-primary rounded-pill px-3">Новая</span>
+                                        {% elif req.status == 'IN_PROGRESS' %}
+                                            <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-3">В работе</span>
+                                        {% elif req.status == 'COMPLETED' %}
+                                            <span class="badge bg-success-subtle text-success rounded-pill px-3">✓ Выполнено</span>
+                                        {% else %}
+                                            <span class="badge bg-danger-subtle text-danger rounded-pill px-3">Отклонена</span>
+                                            {% if req.rejection_reason %}
+                                                <div class="small text-danger mt-1" style="max-width: 280px;">
+                                                    {{ req.rejection_reason }}
+                                                </div>
+                                            {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        Вы ещё не отправляли ни одной заявки в этом триместре.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        {% endfor %}
-    </div>
-
-    <h4 class="fw-bold mb-3">История моих заявок</h4>
-    <div class="bento-card overflow-hidden mb-4">
-        <div class="table-responsive">
-            <table class="table table-modern table-hover align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th class="ps-4">№</th>
-                        <th>Привилегия</th>
-                        <th>Детали</th>
-                        <th>Дата подачи</th>
-                        <th class="pe-4">Статус</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for req in requests %}
-                        <tr>
-                            <td class="ps-4 text-muted fw-medium">#{{ req.pk }}</td>
-                            <td class="fw-semibold">{{ req.privilege.name }}</td>
-                            <td>
-                                {% if req.subject %}
-                                    <span class="badge bg-light text-dark border rounded-pill">{{ req.subject.name }}</span>
+        {% else %}
+            <div class="row justify-content-center my-4">
+                <div class="col-md-7 col-lg-5">
+                    <div class="bento-card p-4 p-md-5 text-center">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-warning-subtle text-warning-emphasis rounded-4 mb-3"
+                             style="width: 56px; height: 56px; font-size: 1.65rem;">
+                            🔑
+                        </div>
+                        <h4 class="fw-bold mb-2">Активация карты привилегий</h4>
+                        <p class="text-muted small mb-4">
+                            Введите персональный секретный код, который вам выдал завуч или классный руководитель.
+                        </p>
+        
+                        <form method="post" action="{% url 'cards:activate_card' %}" novalidate>
+                            {% csrf_token %}
+                            <div class="mb-3 text-start">
+                                {{ activate_form.activation_code }}
+                                {% if activate_form.activation_code.errors %}
+                                    <div class="text-danger small mt-1">{{ activate_form.activation_code.errors.0 }}</div>
                                 {% endif %}
-                                {% if req.grade_to_remove %}
-                                    <span class="badge bg-warning-subtle text-dark border rounded-pill">Оценка: {{ req.grade_to_remove }}</span>
-                                {% endif %}
-                                {% if req.target_date %}
-                                    <span class="badge bg-light text-dark border rounded-pill">{{ req.target_date|date:"d.m.Y" }}</span>
-                                {% endif %}
-                                {% if not req.subject and not req.grade_to_remove and not req.target_date %}
-                                    <span class="text-muted small">—</span>
-                                {% endif %}
-                                {% if req.status == 'REJECTED' and req.rejection_reason %}
-                                    <div class="text-danger small mt-1 bg-danger-subtle p-2 rounded-3">
-                                        <strong>Причина отказа:</strong> {{ req.rejection_reason }}
-                                    </div>
-                                {% endif %}
-                            </td>
-                            <td class="text-muted small">{{ req.created_at|date:"d.m.Y H:i" }}</td>
-                            <td class="pe-4">
-                                {% if req.status == 'NEW' %}
-                                    <span class="badge bg-primary-subtle text-primary rounded-pill px-3 py-2">Новая</span>
-                                {% elif req.status == 'IN_PROGRESS' %}
-                                    <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-3 py-2">В работе</span>
-                                {% elif req.status == 'COMPLETED' %}
-                                    <span class="badge bg-success-subtle text-success rounded-pill px-3 py-2">Выполнено</span>
-                                {% elif req.status == 'REJECTED' %}
-                                    <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-2">Отклонено</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-5">
-                                <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
-                                Вы ещё не подавали заявок в этом триместре.
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-{% else %}
-    <div class="row justify-content-center mt-4">
-        <div class="col-md-8 col-lg-5">
-            <div class="bento-card p-4 p-md-5 text-center">
-                <div class="brand-icon mx-auto mb-3" style="width: 52px; height: 52px; font-size: 1.5rem; border-radius: 16px;">
-                    <i class="bi bi-key-fill"></i>
-                </div>
-                <h4 class="fw-bold mb-2">Активация карты привилегий</h4>
-                <p class="text-muted small mb-4">
-                    Оставлять заявки могут только обладатели Золотой или Серебряной карты.
-                    Если вы получили карту на этот триместр, введите секретный код, выданный завучем.
-                </p>
-
-                <form method="post" action="{% url 'cards:activate_card' %}" class="text-start">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="{{ activate_form.activation_code.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
-                            {{ activate_form.activation_code.label }}
-                        </label>
-                        {{ activate_form.activation_code }}
+                            </div>
+                            <button type="submit" class="btn btn-warning btn-lg w-100 rounded-pill fw-bold text-dark shadow-sm">
+                                Активировать карту
+                            </button>
+                        </form>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill fw-semibold shadow-sm mt-2">
-                        <i class="bi bi-check2-circle me-1"></i> Активировать карту
-                    </button>
-                </form>
+                </div>
             </div>
-        </div>
-    </div>
-{% endif %}
-{% endblock %}
+        {% endif %}
+        {% endblock %}
+        

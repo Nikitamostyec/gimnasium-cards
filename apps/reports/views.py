@@ -9,7 +9,7 @@ from django.views.generic import FormView
 
 from cards.models import Trimester
 from core.mixins import HeadTeacherRequiredMixin
-from .exporters import generate_trimester_report_xlsx
+from .exporters import generate_trimester_report_xlsx, generate_import_template_xlsx
 from .forms import StudentImportForm, TrimesterCreateForm
 from .importers import commit_imported_students, parse_students_file
 
@@ -137,3 +137,16 @@ class TrimesterActivateView(HeadTeacherRequiredMixin, View):
         trimester.save()
         messages.success(request, f'Активный триместр изменен на «{trimester.name}».')
         return redirect('reports:manage_trimesters')
+
+
+class DownloadImportTemplateView(HeadTeacherRequiredMixin, View):
+    """Отдаёт готовый пустой шаблон .xlsx для импорта списков учеников."""
+
+    def get(self, request, *args, **kwargs):
+        xlsx_bytes = generate_import_template_xlsx()
+        response = HttpResponse(
+            xlsx_bytes,
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        response['Content-Disposition'] = 'attachment; filename="shablon_import_gim16.xlsx"'
+        return response

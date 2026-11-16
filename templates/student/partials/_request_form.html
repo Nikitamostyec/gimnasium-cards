@@ -1,143 +1,431 @@
-<div class="bento-card border border-primary border-opacity-25 overflow-hidden mt-3 shadow">
-    <div class="px-4 py-3 text-white d-flex justify-content-between align-items-center"
-         style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);">
-        <div class="d-flex align-items-center gap-2 fw-semibold">
-            <i class="bi bi-send-check-fill"></i>
-            <span>Оформление заявки: {{ privilege.name }}</span>
+<style>
+    .req-shell-card {
+        background: #ffffff;
+        border: 2px solid rgba(37, 99, 235, 0.22);
+        border-radius: 28px;
+        box-shadow: 0 24px 50px -12px rgba(15, 23, 42, 0.14),
+                    0 0 0 6px rgba(37, 99, 235, 0.05);
+        overflow: visible;
+        animation: formSlideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes formSlideUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .req-shell-header {
+        background: radial-gradient(circle at 85% 20%, rgba(59, 130, 246, 0.35), transparent 50%),
+                    linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        color: #ffffff;
+        padding: 1.75rem 2rem;
+        border-radius: 26px 26px 0 0;
+    }
+
+    .step-badge-circle {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: #2563eb;
+        color: #ffffff;
+        font-size: 0.78rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 0.45rem;
+    }
+
+    .req-field-box {
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 1.15rem;
+        height: 100%;
+        position: relative;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .req-field-box:focus-within {
+        background: #ffffff;
+        border-color: #3b82f6;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.08);
+    }
+
+    .req-field-box .form-select {
+        font-size: 0.92rem;
+        padding: 0.65rem 2.25rem 0.65rem 0.9rem;
+    }
+
+    /* Кастомный селект с поиском для предметов */
+    .custom-select-trigger {
+        width: 100%;
+        text-align: left;
+        background: #ffffff;
+        border: 1px solid #ced4da;
+        border-radius: 1rem;
+        padding: 0.65rem 0.9rem;
+        font-size: 0.92rem;
+        color: #212529;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        cursor: pointer;
+    }
+
+    .custom-select-trigger:hover {
+        border-color: #86b7fe;
+    }
+
+    .custom-select-dropdown {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: calc(100% + 6px);
+        background: #ffffff;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 18px;
+        box-shadow: 0 18px 36px rgba(15, 23, 42, 0.16);
+        z-index: 1050;
+        padding: 0.65rem;
+        display: none;
+    }
+
+    .custom-select-dropdown.open {
+        display: block;
+    }
+
+    .custom-select-list {
+        max-height: 220px;
+        overflow-y: auto;
+        margin-top: 0.5rem;
+    }
+
+    .custom-select-option {
+        padding: 0.5rem 0.75rem;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        color: #1e293b;
+        transition: background-color 0.15s ease;
+    }
+
+    .custom-select-option:hover,
+    .custom-select-option.active {
+        background-color: #eff6ff;
+        color: #1d4ed8;
+        font-weight: 600;
+    }
+
+    .req-error-banner {
+        background: #fef2f2;
+        border: 1.5px solid #fca5a5;
+        border-left: 6px solid #dc2626;
+        border-radius: 18px;
+        color: #991b1b;
+        padding: 1rem 1.25rem;
+    }
+</style>
+
+<div class="req-shell-card my-4" id="activeRequestFormContainer">
+    <div class="req-shell-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold mb-2">
+                Оформление заявки
+            </span>
+            <h4 class="fw-bolder mb-1 text-white">{{ privilege.name }}</h4>
+            <p class="small text-white-50 mb-0">
+                {% if privilege.code == 'SKIP_DAY' %}
+                    Подаётся завучу не позднее чем за 2 календарных дня до выбранной даты.
+                {% elif privilege.code == 'DROP_GRADE' %}
+                    Действует пакет 2×1: за 1 балл карты предоставляются 2 попытки отказа от отметки.
+                {% elif privilege.code == 'SKIP_PRACTICE' %}
+                    Доступно для учащихся 7–10 классов. Рассматривается администрацией гимназии.
+                {% else %}
+                    Заполните поля ниже, и учитель-предметник сразу получит уведомление.
+                {% endif %}
+            </p>
         </div>
-        <a href="{% url 'cards:student_dashboard' %}" class="btn-close btn-close-white" aria-label="Закрыть"></a>
+        <a href="{% url 'cards:student_dashboard' %}"
+           class="btn btn-outline-light btn-sm rounded-pill px-3 fw-semibold">
+            ✕ Отменить
+        </a>
     </div>
 
-    <div class="p-4">
-        <form method="post" action="{% url 'cards:create_request' %}">
+    <div class="p-4 p-md-5">
+        {% if form.errors %}
+            <div class="req-error-banner mb-4 shadow-sm" role="alert">
+                <div class="fw-bold mb-1">
+                    ⚠️ Заявка не отправлена. Исправьте следующие пункты:
+                </div>
+                <ul class="small mb-0 ps-3">
+                    {% for error in form.non_field_errors %}
+                        <li class="fw-semibold">{{ error }}</li>
+                    {% endfor %}
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li class="fw-semibold">{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <form method="post"
+              action="{% url 'cards:create_request' %}"
+              id="privilegeRequestForm"
+              onsubmit="return lockSubmitButton(this);">
             {% csrf_token %}
             {{ form.privilege_code }}
 
             {% if privilege.requires_subject %}
-                <div class="row g-3 mb-3">
+                <div class="row g-3 mb-4">
                     <div class="col-md-4">
-                        <label for="{{ form.corpus.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
-                            1. {{ form.corpus.label }} <span class="text-danger">*</span>
-                        </label>
-                        {{ form.corpus }}
-                    </div>
-
-                    <div class="col-md-4">
-                        <label for="{{ form.subject.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
-                            2. {{ form.subject.label }} <span class="text-danger">*</span>
-                        </label>
-                        {{ form.subject }}
+                        <div class="req-field-box {% if form.corpus.errors %}border-danger{% endif %}">
+                            <label for="id_corpus" class="form-label fw-bold small text-dark d-flex align-items-center mb-2">
+                                <span class="step-badge-circle">1</span> Учебный корпус
+                            </label>
+                            {{ form.corpus }}
+                            {% if form.corpus.errors %}
+                                <div class="text-danger small fw-semibold mt-2">{{ form.corpus.errors.0 }}</div>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <div class="col-md-4">
-                        <label for="{{ form.teacher.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
-                            3. {{ form.teacher.label }} <span class="text-danger">*</span>
-                        </label>
-                        {{ form.teacher }}
+                        <div class="req-field-box {% if form.subject.errors %}border-danger{% endif %}" id="subjectPickerBox">
+                            <label class="form-label fw-bold small text-dark d-flex align-items-center mb-2">
+                                <span class="step-badge-circle">2</span> Учебный предмет
+                            </label>
+                            <div class="d-none">{{ form.subject }}</div>
+
+                            <button type="button" class="custom-select-trigger" id="subjectDropdownBtn">
+                                <span id="subjectSelectedLabel" class="text-truncate">Выберите учебный предмет</span>
+                                <span class="text-muted small">▾</span>
+                            </button>
+
+                            <div class="custom-select-dropdown" id="subjectDropdownMenu">
+                                <input type="text"
+                                       id="subjectFilterInput"
+                                       class="form-control form-control-sm rounded-pill px-3"
+                                       placeholder="🔍 Начните вводить предмет...">
+                                <div class="custom-select-list" id="subjectOptionsList"></div>
+                            </div>
+
+                            {% if form.subject.errors %}
+                                <div class="text-danger small fw-semibold mt-2">{{ form.subject.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="req-field-box {% if form.teacher.errors %}border-danger{% endif %}">
+                            <label for="id_teacher" class="form-label fw-bold small text-dark d-flex align-items-center mb-2">
+                                <span class="step-badge-circle">3</span> Учитель-предметник
+                            </label>
+                            {{ form.teacher }}
+                            {% if form.teacher.errors %}
+                                <div class="text-danger small fw-semibold mt-2">{{ form.teacher.errors.0 }}</div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
+
+                <div id="noTeacherWarning" class="alert alert-warning border-0 rounded-4 small py-2 px-3 mb-4 d-none">
+                    В выбранном корпусе пока не зарегистрирован учитель по этому предмету. Проверьте выбор корпуса.
+                </div>
             {% endif %}
 
-            {% if privilege.code == 'DROP_GRADE' %}
-                <div class="mb-3">
-                    <label for="{{ form.grade_to_remove.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
-                        {{ form.grade_to_remove.label }} <span class="text-danger">*</span>
-                    </label>
-                    {{ form.grade_to_remove }}
-                    <div class="form-text small text-muted">
-                        <i class="bi bi-info-circle me-1"></i>Укажите балл от 1 до 10 включительно, который нужно аннулировать в журнале.
+            {% if privilege.requires_date %}
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="req-field-box {% if form.target_date.errors %}border-danger{% endif %}">
+                            <label for="id_target_date" class="form-label fw-bold small text-dark d-flex align-items-center mb-2">
+                                <span class="step-badge-circle">1</span> Дата освобождения от занятий
+                            </label>
+                            {{ form.target_date }}
+                            <div class="form-text small mt-2">
+                                Выберите дату начиная с послезавтрашнего дня.
+                            </div>
+                            {% if form.target_date.errors %}
+                                <div class="text-danger small fw-semibold mt-1">{{ form.target_date.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            {% endif %}
-
-            {% if privilege.requires_date and privilege.code != 'DROP_GRADE' %}
-                <div class="mb-3">
-                    <label for="{{ form.target_date.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
-                        {{ form.target_date.label }} <span class="text-danger">*</span>
-                    </label>
-                    {{ form.target_date }}
-                    <div class="form-text small text-muted">
-                        <i class="bi bi-calendar-event me-1"></i>Заявку на освобождение от занятий нужно подавать минимум за 2 дня.
+                {% endif %}
+    
+                {% if privilege.code == 'DROP_GRADE' %}
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="req-field-box {% if form.grade_to_remove.errors %}border-danger{% endif %}">
+                                <label for="id_grade_to_remove" class="form-label fw-bold small text-dark d-flex align-items-center mb-2">
+                                    <span class="step-badge-circle">4</span> От какой отметки отказываетесь
+                                </label>
+                                {{ form.grade_to_remove }}
+                                {% if form.grade_to_remove.errors %}
+                                    <div class="text-danger small fw-semibold mt-2">{{ form.grade_to_remove.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
+                {% endif %}
+    
+                <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pt-4 border-top">
+                    <div class="small text-muted">
+                        После отправки балл резервируется. При отклонении заявки учителем балл вернётся на карту.
+                    </div>
+                    <button type="submit"
+                            id="submitRequestBtn"
+                            class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow">
+                        Подтвердить и отправить заявку
+                    </button>
                 </div>
-            {% endif %}
-
-            {% if not privilege.requires_subject and not privilege.requires_date %}
-                <div class="bg-light rounded-3 p-3 mb-3 small text-muted d-flex align-items-center gap-2">
-                    <i class="bi bi-building-check text-primary fs-5"></i>
-                    <span>Заявка будет отправлена напрямую завучу гимназии. Дополнительные поля не требуются.</span>
-                </div>
-            {% endif %}
-
-            <div class="d-flex flex-wrap gap-2 pt-2">
-                <button type="submit" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-sm">
-                    <i class="bi bi-check2-circle me-1"></i> Подтвердить и отправить
-                </button>
-                <a href="{% url 'cards:student_dashboard' %}" class="btn btn-light text-muted rounded-pill px-4 py-2 fw-medium">
-                    Отмена
-                </a>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
-
-{% if privilege.requires_subject %}
-{{ teachers_catalog|json_script:"teachers-catalog-data" }}
-<script>
-(function() {
-    const dataElement = document.getElementById('teachers-catalog-data');
-    const teachersData = dataElement ? JSON.parse(dataElement.textContent) : [];
-    const corpusSelect = document.getElementById('id_corpus');
-    const subjectSelect = document.getElementById('id_subject');
-    const teacherSelect = document.getElementById('id_teacher');
-    if (!corpusSelect || !subjectSelect || !teacherSelect) return;
-
-    function updateTeachersList() {
-        const corpusId = parseInt(corpusSelect.value, 10);
-        const subjectId = parseInt(subjectSelect.value, 10);
-
-        teacherSelect.innerHTML = '';
-
-        if (!corpusId || !subjectId) {
-            const opt = document.createElement('option');
-            opt.value = '';
-            opt.textContent = '--- Сначала выберите корпус и предмет ---';
-            teacherSelect.appendChild(opt);
-            teacherSelect.disabled = true;
-            return;
+    
+    <script>
+    (function() {
+        const container = document.getElementById('activeRequestFormContainer');
+        if (container) {
+            container.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-
-        const matched = teachersData.filter(t =>
-            t.corpuses.includes(corpusId) && t.subjects.includes(subjectId)
-        );
-
-        if (matched.length === 0) {
-            const opt = document.createElement('option');
-            opt.value = '';
-            opt.textContent = 'Нет учителей по выбранному предмету в этом корпусе';
-            teacherSelect.appendChild(opt);
-            teacherSelect.disabled = true;
-            return;
+    })();
+    
+    function lockSubmitButton(form) {
+        if (form.dataset.submitted === 'true') {
+            return false;
         }
-
-        const defaultOpt = document.createElement('option');
-        defaultOpt.value = '';
-        defaultOpt.textContent = `--- Выберите учителя (найдено: ${matched.length}) ---`;
-        teacherSelect.appendChild(defaultOpt);
-
-        matched.forEach(teacher => {
-            const opt = document.createElement('option');
-            opt.value = teacher.id;
-            opt.textContent = teacher.name;
-            teacherSelect.appendChild(opt);
-        });
-
-        teacherSelect.disabled = false;
+        form.dataset.submitted = 'true';
+        const btn = document.getElementById('submitRequestBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Отправка заявки...';
+        }
+        return true;
     }
-
-    corpusSelect.addEventListener('change', updateTeachersList);
-    subjectSelect.addEventListener('change', updateTeachersList);
-    updateTeachersList();
-})();
-</script>
-{% endif %}
+    </script>
+    
+    {% if privilege.requires_subject %}
+    {{ teachers_catalog|json_script:"teachers-catalog-data" }}
+    <script>
+    (function() {
+        const dataElement = document.getElementById('teachers-catalog-data');
+        const teachersData = dataElement ? JSON.parse(dataElement.textContent) : [];
+        const corpusSelect = document.getElementById('id_corpus');
+        const subjectSelect = document.getElementById('id_subject');
+        const teacherSelect = document.getElementById('id_teacher');
+        const warningBox = document.getElementById('noTeacherWarning');
+        const preselectedTeacherId = teacherSelect ? teacherSelect.value : '';
+    
+        // Кастомный селект предметов с поиском
+        const dropdownBtn = document.getElementById('subjectDropdownBtn');
+        const dropdownMenu = document.getElementById('subjectDropdownMenu');
+        const filterInput = document.getElementById('subjectFilterInput');
+        const optionsList = document.getElementById('subjectOptionsList');
+        const selectedLabel = document.getElementById('subjectSelectedLabel');
+        const pickerBox = document.getElementById('subjectPickerBox');
+    
+        function renderSubjectOptions(query = '') {
+            if (!subjectSelect || !optionsList) return;
+            optionsList.innerHTML = '';
+            const q = query.trim().toLowerCase();
+    
+            Array.from(subjectSelect.options).forEach(opt => {
+                if (!opt.value) return;
+                if (q && !opt.text.toLowerCase().includes(q)) return;
+    
+                const div = document.createElement('div');
+                div.className = 'custom-select-option' + (opt.selected ? ' active' : '');
+                div.textContent = opt.text;
+                div.addEventListener('click', () => {
+                    subjectSelect.value = opt.value;
+                    selectedLabel.textContent = opt.text;
+                    dropdownMenu.classList.remove('open');
+                    filterTeachers();
+                });
+                optionsList.appendChild(div);
+            });
+        }
+    
+        if (subjectSelect && subjectSelect.value) {
+            const currentOpt = subjectSelect.options[subjectSelect.selectedIndex];
+            if (currentOpt && currentOpt.value) {
+                selectedLabel.textContent = currentOpt.text;
+            }
+        }
+    
+        dropdownBtn?.addEventListener('click', () => {
+            dropdownMenu.classList.toggle('open');
+            if (dropdownMenu.classList.contains('open')) {
+                renderSubjectOptions('');
+                filterInput.value = '';
+                setTimeout(() => filterInput.focus(), 50);
+            }
+        });
+    
+        filterInput?.addEventListener('input', (e) => {
+            renderSubjectOptions(e.target.value);
+        });
+    
+        document.addEventListener('click', (e) => {
+            if (pickerBox && !pickerBox.contains(e.target)) {
+                dropdownMenu?.classList.remove('open');
+            }
+        });
+    
+        function filterTeachers() {
+            const corpusId = parseInt(corpusSelect.value, 10);
+            const subjectId = parseInt(subjectSelect.value, 10);
+    
+            teacherSelect.innerHTML = '';
+            warningBox.classList.add('d-none');
+    
+            if (!corpusId || !subjectId) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'Сначала выберите корпус и предмет';
+                teacherSelect.appendChild(opt);
+                teacherSelect.disabled = true;
+                return;
+            }
+    
+            const matched = teachersData.filter(t =>
+                t.corpuses.includes(corpusId) && t.subjects.includes(subjectId)
+            );
+    
+            if (matched.length === 0) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'Учителя не найдены';
+                teacherSelect.appendChild(opt);
+                teacherSelect.disabled = true;
+                warningBox.classList.remove('d-none');
+                return;
+            }
+    
+            teacherSelect.disabled = false;
+            const defaultOpt = document.createElement('option');
+            defaultOpt.value = '';
+            defaultOpt.textContent = 'Выберите учителя из списка';
+            teacherSelect.appendChild(defaultOpt);
+    
+            matched.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = t.name;
+                if (String(t.id) === String(preselectedTeacherId)) {
+                    opt.selected = true;
+                }
+                teacherSelect.appendChild(opt);
+            });
+        }
+    
+        corpusSelect?.addEventListener('change', filterTeachers);
+        filterTeachers();
+    })();
+    </script>
+    {% endif %}
+    

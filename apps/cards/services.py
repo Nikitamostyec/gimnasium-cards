@@ -1,6 +1,7 @@
 import threading
 from datetime import date, timedelta
 
+
 from django.conf import settings
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import send_mail
@@ -279,3 +280,120 @@ class RequestService:
         req.processed_by = user
         req.save()
         return req
+
+    @staticmethod
+    def _refund_card_balance(card: CardAssignment, req: PrivilegeRequest) -> None:
+        """Возвращает списанный лимит на карту ученика (с учётом пакета 2x1 для отказа от оценки)."""
+        if req.privilege.code == Privilege.Code.DROP_GRADE:
+            if card.grade_removal_used_count > 0:
+                card.grade_removal_used_count -= 1
+            if not req.spent_from_reserve and card.used > 0:
+                card.used -= 1
+            card.save(update_fields=['used', 'grade_removal_used_count'])
+        else:
+            if card.used > 0:
+                card.used -= 1
+                card.save(update_fields=['used'])
+
+
+    @classmethod
+    def process_stale_requests(cls) -> dict[str, int]:
+        """Автоматически закрывает просроченные заявки с возвратом лимита и напоминает о зависших."""
+        today = timezone.localdate()
+        now = timezone.now()
+        expired_count = 0
+        reminded_count = 0
+
+        overdue_date_qs = PrivilegeRequest.objects.select_related(
+            'card', 'card__student', 'privilege'
+        ).filter(
+            status__in=[
+                PrivilegeRequest.Status.NEW,
+                PrivilegeRequest.Status.IN_PROGRESS,
+            ],
+            target_date__lt=today,
+        )
+
+        for req in overdue_date_qs:
+            with transaction.atomic():
+                locked_req = (
+                    PrivilegeRequest.objects.select_for_update()
+                    .select_related('card', 'privilege')
+                    .get(id=req.id)
+                )
+                if locked_req.status not in (
+                    PrivilegeRequest.Status.NEW,
+                    PrivilegeRequest.Status.IN_PROGRESS,
+                ):
+                    continue
+
+                card = CardAssignment.objects.select_for_update().get(
+                    id=locked_req.card_id
+                )
+                cls._refund_card_balance(card, locked_req)
+
+                locked_req.status = PrivilegeRequest.Status.REJECTED
+                locked_req.rejection_reason = (
+                    'Автоматическая отмена: выбранная дата уже прошла без рассмотрения. '
+                    'Балл возвращён на вашу карту.'
+                )
+                locked_req.save(update_fields=['status', 'rejection_reason', 'updated_at'])
+                expired_count += 1
+
+        stale_7_days_qs = PrivilegeRequest.objects.select_related(
+            'card', 'privilege'
+        ).filter(
+            status=PrivilegeRequest.Status.NEW,
+            target_date__isnull=True,
+            created_at__lt=now - timedelta(days=7),
+        )
+
+        for req in stale_7_days_qs:
+            with transaction.atomic():
+                locked_req = (
+                    PrivilegeRequest.objects.select_for_update()
+                    .select_related('card', 'privilege')
+                    .get(id=req.id)
+                )
+                if locked_req.status != PrivilegeRequest.Status.NEW:
+                    continue
+
+                card = CardAssignment.objects.select_for_update().get(
+                    id=locked_req.card_id
+                )
+                cls._refund_card_balance(card, locked_req)
+
+                locked_req.status = PrivilegeRequest.Status.REJECTED
+                locked_req.rejection_reason = (
+                    'Автоматическая отмена: заявка не была рассмотрена в течение 7 дней. '
+                    'Балл возвращён на вашу карту.'
+                )
+                locked_req.save(update_fields=['status', 'rejection_reason', 'updated_at'])
+                expired_count += 1
+
+        remind_qs = PrivilegeRequest.objects.select_related(
+            'card__student', 'privilege', 'subject', 'teacher'
+        ).filter(
+            status=PrivilegeRequest.Status.NEW,
+            created_at__lte=now - timedelta(days=3),
+            created_at__gt=now - timedelta(days=4),
+            teacher__isnull=False,
+        )
+
+        for req in remind_qs:
+            if req.teacher and req.teacher.email:
+                subject_line = (
+                    f'Напоминание: заявка #{req.id} от {req.card.student.full_name} ожидает ответа'
+                )
+                body = (
+                    f'Здравствуйте, {req.teacher.get_full_name() or req.teacher.username}!\n\n'
+                    f'Заявка #{req.id} от ученика {req.card.student.full_name} '
+                    f'({req.card.student.grade_num}{req.card.student.grade_letter} класс) '
+                    f'на привилегию «{req.privilege.name}» ожидает вашего решения уже более 3 дней.\n'
+                    f'Через 7 дней после подачи нерассмотренная заявка будет автоматически отменена с возвратом балла ученику.\n\n'
+                    f'Перейти в кабинет: http://127.0.0'
+                )
+                _send_notification_async(subject_line, body, req.teacher.email)
+                reminded_count += 1
+
+        return {'expired': expired_count, 'reminded': reminded_count}
