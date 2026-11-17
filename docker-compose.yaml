@@ -6,11 +6,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: gimnasium_db
-      POSTGRES_USER: gimnasium_user
-      POSTGRES_PASSWORD: strong_password_123
+      POSTGRES_DB: ${POSTGRES_DB:-gimnasium_db}
+      POSTGRES_USER: ${POSTGRES_USER:-gimnasium_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-strong_password_123}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U gimnasium_user -d gimnasium_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-gimnasium_user} -d ${POSTGRES_DB:-gimnasium_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -19,14 +19,10 @@ services:
     build: .
     container_name: gimnasium_web
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
-      - "8000:8000"
-    environment:
-      DEBUG: "False"
-      SECRET_KEY: "your-super-secret-production-key-change-me"
-      ALLOWED_HOSTS: "localhost,127.0.0.1"
-      DATABASE_URL: "postgres://gimnasium_user:strong_password_123@db:5432/gimnasium_db"
-      TEACHER_INVITE_CODE: "GIM16-2026-TEACH"
+      - "127.0.0.1:8000:8000"
     depends_on:
       db:
         condition: service_healthy
