@@ -131,6 +131,10 @@ class RequestService:
                 raise ValidationError(
                     'Право отказа от оценок уже использовано максимальное число раз (2).'
                 )
+            if active_requests.filter(subject_id=subject_id).exists():
+                raise ValidationError(
+                    f'Нельзя убрать 2 оценки по одному и тому же предмету («{subject_obj.name}»). Выберите другой предмет.'
+                )
 
             if card.grade_removal_credits > 0:
                 card.grade_removal_credits -= 1
@@ -391,7 +395,7 @@ class RequestService:
                     f'({req.card.student.grade_num}{req.card.student.grade_letter} класс) '
                     f'на привилегию «{req.privilege.name}» ожидает вашего решения уже более 3 дней.\n'
                     f'Через 7 дней после подачи нерассмотренная заявка будет автоматически отменена с возвратом балла ученику.\n\n'
-                    f'Перейти в кабинет: http://127.0.0'
+                    f'Перейти в кабинет: https://gim16cards.ru'
                 )
                 _send_notification_async(subject_line, body, req.teacher.email)
                 reminded_count += 1
