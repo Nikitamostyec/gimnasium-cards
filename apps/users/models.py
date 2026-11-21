@@ -68,6 +68,16 @@ class User(AbstractUser):
         null=True,
         blank=True,
     )
+    is_consent_given = models.BooleanField(
+        'Согласие на обработку ПДн получено',
+        default=False,
+    )
+    consent_date = models.DateTimeField(
+        'Дата и время согласия на обработку ПДн',
+        null=True,
+        blank=True,
+    )
+
 
     class Meta:
         verbose_name = 'Пользователь'

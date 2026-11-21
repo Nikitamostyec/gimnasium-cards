@@ -82,6 +82,15 @@ class StudentRegisterForm(forms.Form):
             attrs={'class': 'form-control', 'placeholder': 'Повторите пароль'}
         ),
     )
+    consent = forms.BooleanField(
+        required=True,
+        error_messages={
+            'required': 'Для регистрации необходимо дать согласие на обработку персональных данных.'
+        },
+        widget=forms.CheckboxInput(
+            attrs={'class': 'form-check-input', 'id': 'id_consent'}
+        ),
+    )
 
     def clean_username(self) -> str:
         username = self.cleaned_data['username'].strip()
@@ -186,6 +195,15 @@ class TeacherRegisterForm(forms.Form):
         min_length=6,
         widget=forms.PasswordInput(
             attrs={'class': 'form-control', 'placeholder': 'Повторите пароль'}
+        ),
+    )
+    consent = forms.BooleanField(
+        required=True,
+        error_messages={
+            'required': 'Для регистрации необходимо дать согласие на обработку персональных данных.'
+        },
+        widget=forms.CheckboxInput(
+            attrs={'class': 'form-check-input', 'id': 'id_consent'}
         ),
     )
 

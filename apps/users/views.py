@@ -6,6 +6,8 @@ from django.core.exceptions import PermissionDenied
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import FormView
+from django.utils import timezone
+from django.views.generic import FormView, TemplateView
 
 from .forms import (
     StaffLoginForm,
@@ -76,7 +78,10 @@ class StudentRegisterView(FormView):
             is_student=True,
             grade_num=grade_num,
             grade_letter=grade_letter,
+            is_consent_given=True,
+            consent_date=timezone.now(),
         )
+
         login(self.request, user)
         messages.success(
             self.request,
@@ -105,7 +110,10 @@ class TeacherRegisterView(FormView):
             email=form.cleaned_data['email'].strip(),
             is_student=False,
             is_head_teacher=False,
+            is_consent_given=True,
+            consent_date=timezone.now(),
         )
+
         user.corpuses.set(form.cleaned_data['corpuses'])
         user.subjects.set(form.cleaned_data['subjects'])
 
@@ -169,3 +177,9 @@ class UserProfileView(LoginRequiredMixin, FormView):
 
         messages.success(self.request, 'Данные вашего профиля успешно обновлены!')
         return super().form_valid(form)
+
+
+class PrivacyPolicyView(TemplateView):
+    """Страница Политики конфиденциальности и обработки персональных данных."""
+
+    template_name = 'users/privacy.html'

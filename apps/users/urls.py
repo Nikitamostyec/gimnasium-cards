@@ -1,8 +1,7 @@
-"""Маршрутизация аутентификации и регистрации пользователей гимназии."""
-
 from django.urls import path
 
 from .views import (
+    PrivacyPolicyView,
     StaffLoginView,
     StaffLogoutView,
     StudentRegisterView,
@@ -18,4 +17,5 @@ urlpatterns = [
     path('register/student/', StudentRegisterView.as_view(), name='student_register'),
     path('register/teacher/', TeacherRegisterView.as_view(), name='teacher_register'),
     path('profile/', UserProfileView.as_view(), name='profile'),
+    path('privacy/', PrivacyPolicyView.as_view(), name='privacy'),
 ]

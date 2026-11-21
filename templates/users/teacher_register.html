@@ -194,21 +194,13 @@
                 </div>
 
                 <div class="mb-3">
-                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-                        <label class="form-label fw-semibold small text-uppercase text-muted mb-0">
-                            Ваши предметы <span class="text-muted fw-normal text-lowercase">(можно выбрать несколько)</span> <span class="text-danger">*</span>
-                        </label>
-                        <input type="text"
-                               id="subject-search-input"
-                               class="form-control form-control-sm rounded-pill px-3"
-                               style="max-width: 220px;"
-                               placeholder="🔍 Быстрый поиск...">
-                    </div>
-
-                    <div class="p-3 rounded-4 bg-light border" style="max-height: 260px; overflow-y: auto;">
-                        <div class="row g-2" id="subjects-grid">
+                    <label class="form-label fw-semibold small text-uppercase text-muted d-block mb-2">
+                        Ваши предметы <span class="text-muted fw-normal text-lowercase">(можно выбрать несколько)</span> <span class="text-danger">*</span>
+                    </label>
+                    <div class="p-3 rounded-4 bg-light border">
+                        <div class="row g-2">
                             {% for checkbox in form.subjects %}
-                                <div class="col-12 col-sm-6 subject-item" data-name="{{ checkbox.choice_label|lower }}">
+                                <div class="col-12 col-sm-6">
                                     <input type="checkbox"
                                            name="{{ checkbox.data.name }}"
                                            value="{{ checkbox.data.value }}"
@@ -220,56 +212,75 @@
                                         <span>{{ checkbox.choice_label }}</span>
                                     </label>
                                 </div>
-                                {% endfor %}
-                            </div>
+                            {% endfor %}
                         </div>
-                        {% if form.subjects.errors %}
-                            <div class="text-danger small mt-1">{{ form.subjects.errors.0 }}</div>
+                    </div>
+                    {% if form.subjects.errors %}
+                        <div class="text-danger small mt-1">{{ form.subjects.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                        <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                            {{ form.password.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.password }}
+                        {% if form.password.errors %}
+                            <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
                         {% endif %}
                     </div>
-    
-                    <div class="row g-3 mb-4 align-items-end">
-                        <div class="col-md-6">
-                            <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
-                                {{ form.password.label }} <span class="text-danger">*</span>
-                            </label>
-                            {{ form.password }}
-                            {% if form.password.errors %}
-                                <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
-                            {% endif %}
-                        </div>
-    
-                        <div class="col-md-6">
-                            <label for="{{ form.confirm_password.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
-                                {{ form.confirm_password.label }} <span class="text-danger">*</span>
-                            </label>
-                            {{ form.confirm_password }}
-                            {% if form.confirm_password.errors %}
-                                <div class="text-danger small mt-1">{{ form.confirm_password.errors.0 }}</div>
-                            {% endif %}
-                        </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.confirm_password.id_for_label }}" class="form-label fw-semibold small text-uppercase text-muted">
+                            {{ form.confirm_password.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.confirm_password }}
+                        {% if form.confirm_password.errors %}
+                            <div class="text-danger small mt-1">{{ form.confirm_password.errors.0 }}</div>
+                        {% endif %}
                     </div>
-    
-                    <button type="submit" class="btn btn-warning btn-lg w-100 rounded-pill fw-bold text-dark shadow-sm">
-                        Зарегистрироваться
-                    </button>
-                </form>
-    
-                <div class="text-center mt-4 pt-3 border-top small text-muted">
-                    Уже есть аккаунт учителя? <a href="{% url 'users:login' %}" class="fw-semibold text-decoration-none">Войти</a>
                 </div>
+
+                <div class="form-check mb-3 mt-3">
+                    {{ form.consent }}
+                    <label class="form-check-label small text-muted" for="{{ form.consent.id_for_label }}">
+                        Я даю согласие на обработку персональных данных (согласие родителей получено школой) и принимаю
+                        <a href="{% url 'users:privacy' %}" target="_blank" rel="noopener noreferrer" class="fw-semibold text-decoration-underline">Политику конфиденциальности</a>.
+                    </label>
+                    {% if form.consent.errors %}
+                        <div class="text-danger small mt-1">
+                            <i class="bi bi-exclamation-circle me-1"></i>{{ form.consent.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <button type="submit" id="submitTeacherBtn" class="btn btn-primary btn-lg w-100 rounded-pill fw-semibold shadow-sm mt-2" disabled>
+                    Зарегистрироваться <i class="bi bi-check2-circle ms-1"></i>
+                </button>
+            </form>
+
+            <div class="text-center mt-4 pt-2 border-top border-light">
+                <span class="small text-muted">Уже зарегистрированы?</span>
+                <a href="{% url 'users:login' %}" class="small fw-semibold text-decoration-none ms-1">
+                    Войти в кабинет сотрудника
+                </a>
             </div>
         </div>
     </div>
-    
-    <script>
-    document.getElementById('subject-search-input')?.addEventListener('input', function(e) {
-        const query = e.target.value.trim().toLowerCase();
-        document.querySelectorAll('.subject-item').forEach(item => {
-            const name = item.getAttribute('data-name') || '';
-            item.style.display = name.includes(query) ? '' : 'none';
-        });
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const checkbox = document.getElementById('id_consent');
+        const submitBtn = document.getElementById('submitTeacherBtn');
+        if (checkbox && submitBtn) {
+            submitBtn.disabled = !checkbox.checked;
+            checkbox.addEventListener('change', function () {
+                submitBtn.disabled = !this.checked;
+            });
+        }
     });
-    </script>
-    {% endblock %}
-    
+</script>
+{% endblock %}
