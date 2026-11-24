@@ -43,6 +43,7 @@ urlpatterns = [
         ),
         name='guide',
     ),
+    path('grades/', include('grades.urls')),
 ]
 
 

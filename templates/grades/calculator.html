@@ -1,0 +1,82 @@
+
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Калькулятор оценок — Гимназия №16{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/grades.css' %}">
+
+<div class="grades-page">
+    <div class="grades-shell">
+
+        <header class="grades-header">
+            <div>
+                <span class="grades-eyebrow">ГИМНАЗИЯ № 16 · УЧЕБНЫЙ ИНСТРУМЕНТ</span>
+                <h1>Мои оценки</h1>
+                <p>Добавляй оценки по предметам и следи за своим средним баллом.</p>
+            </div>
+            <div class="grades-leaf" aria-hidden="true">❧</div>
+        </header>
+
+        <section class="grades-overview">
+            <div>
+                <span class="grades-overview-label">ТВОЙ ОБЩИЙ СРЕДНИЙ БАЛЛ</span>
+                <div class="grades-overview-number" id="overall-average">—</div>
+                <p>По всем оценкам во всех предметах</p>
+            </div>
+            <div class="grades-overview-meta">
+                <strong id="overall-count">0</strong>
+                <span>оценок добавлено</span>
+            </div>
+            <span class="grades-overview-leaf" aria-hidden="true">✳</span>
+        </section>
+
+        <section class="grades-toolbar">
+            <div>
+                <span class="grades-section-kicker">ТВОЙ СПИСОК</span>
+                <h2>Предметы</h2>
+                <p id="subjects-count">0 предметов</p>
+            </div>
+
+            <button type="button" class="grades-add-toggle"
+                    id="toggle-subject-form"
+                    aria-expanded="false">
+                <span class="grades-plus">+</span>
+                Добавить предмет
+            </button>
+        </section>
+
+        <div class="grades-add-panel" id="subject-form-wrapper" hidden>
+            <form id="subject-form" class="grades-add-form">
+                <input type="text" id="subject-name"
+                       maxlength="60"
+                       placeholder="Например, математика"
+                       required>
+                <button type="submit" class="grades-submit">Добавить</button>
+                <button type="button" class="grades-cancel"
+                        id="cancel-subject-form">Отмена</button>
+            </form>
+        </div>
+
+        <div class="grades-empty" id="grades-empty" hidden>
+            <div class="grades-empty-mark">✿</div>
+            <h3>Пока здесь пусто</h3>
+            <p>Добавь первый предмет, чтобы начать вести свои оценки.</p>
+            <button type="button" class="grades-empty-add"
+                    id="empty-add-subject">
+                + Добавить первый предмет
+            </button>
+        </div>
+
+        <div class="grades-subjects" id="subjects-list"></div>
+
+        <footer class="grades-footnote">
+            ✦ Оценки сохраняются только в этом браузере на твоём устройстве.
+        </footer>
+
+    </div>
+</div>
+
+<script src="{% static 'js/grades.js' %}" defer></script>
+{% endblock %}
