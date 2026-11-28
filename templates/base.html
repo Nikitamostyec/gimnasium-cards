@@ -140,6 +140,15 @@
         .navbar-calculator-link:hover {
             color: #ffffff !important;
         }
+
+        .navbar-tracker-link {
+            color: #f5d58a !important;
+            font-weight: 600;
+        }
+
+        .navbar-tracker-link:hover {
+            color: #ffffff !important;
+        }
     </style>
 
 
@@ -466,6 +475,17 @@
                                 </a>
                             </li>
 
+                            <!-- Журнал уроков для завуча и администратора -->
+                            <li class="nav-item">
+                                <a
+                                    class="nav-link fw-medium px-3 rounded-pill navbar-tracker-link
+                                    {% if request.resolver_match.namespace == 'lesson_tracker' %}active{% endif %}"
+                                    href="{% url 'lesson_tracker' %}"
+                                >
+                                    📋 Журнал уроков
+                                </a>
+                            </li>
+
 
                         <!-- Учитель -->
                         {% else %}
@@ -477,6 +497,17 @@
                                     href="{% url 'cards:teacher_dashboard' %}"
                                 >
                                     Мои заявки
+                                </a>
+                            </li>
+
+                            <!-- Журнал уроков для учителя -->
+                            <li class="nav-item">
+                                <a
+                                    class="nav-link fw-medium px-3 rounded-pill navbar-tracker-link
+                                    {% if request.resolver_match.namespace == 'lesson_tracker' %}active{% endif %}"
+                                    href="{% url 'lesson_tracker' %}"
+                                >
+                                    📋 Журнал уроков
                                 </a>
                             </li>
 

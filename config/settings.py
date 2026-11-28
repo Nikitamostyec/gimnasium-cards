@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'cards',
     'reports',
     'grades',
+    'apps.lesson_tracker.apps.LessonTrackerConfig',
 ]
 
 MIDDLEWARE = [

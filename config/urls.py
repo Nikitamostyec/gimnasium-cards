@@ -44,6 +44,10 @@ urlpatterns = [
         name='guide',
     ),
     path('grades/', include('grades.urls')),
+    path(
+        'teacher/lesson-tracker/',
+        include('apps.lesson_tracker.urls'),
+    ),
 ]
 
 

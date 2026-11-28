@@ -1,0 +1,938 @@
+
+/* ==========================================
+   LESSON TRACKER — IVORY & GOLD DESIGN
+   Механика и существующие классы сохранены
+   ========================================== */
+
+   * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+html {
+    min-height: 100%;
+    background: #fbf8f1;
+}
+
+body {
+    position: relative;
+    isolation: isolate;
+    background: #fbf8f1;
+    color: #172033;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+/* ==========================================
+   ЗОЛОТЫЕ ДЕКОРАТИВНЫЕ УЗОРЫ
+   ========================================== */
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+
+    background:
+        radial-gradient(
+            ellipse at 8% 18%,
+            rgba(218, 177, 103, 0.13) 0%,
+            transparent 27%
+        ),
+        radial-gradient(
+            ellipse at 93% 72%,
+            rgba(218, 177, 103, 0.12) 0%,
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 15% 78%,
+            rgba(255, 255, 255, 0.8) 0%,
+            transparent 24%
+        ),
+        radial-gradient(
+            circle at 82% 12%,
+            rgba(255, 255, 255, 0.8) 0%,
+            transparent 22%
+        );
+}
+
+/* Золотая волна внизу страницы */
+
+body::after {
+    content: "";
+    position: fixed;
+    left: -10%;
+    bottom: -140px;
+    width: 120%;
+    height: 340px;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.55;
+
+    background:
+        radial-gradient(
+            ellipse at 50% 100%,
+            transparent 58%,
+            rgba(202, 158, 83, 0.45) 58.3%,
+            transparent 59%
+        ),
+        radial-gradient(
+            ellipse at 45% 105%,
+            transparent 64%,
+            rgba(224, 190, 127, 0.5) 64.3%,
+            transparent 65%
+        ),
+        radial-gradient(
+            ellipse at 55% 110%,
+            transparent 70%,
+            rgba(202, 158, 83, 0.35) 70.3%,
+            transparent 71%
+        );
+}
+
+/* Все основные блоки располагаются над узорами */
+
+.topbar,
+.dashboard-wrap,
+.grid,
+.modal,
+.login-screen {
+    position: relative;
+    z-index: 1;
+}
+
+/* ==========================================
+   ВЕРХНЯЯ ПАНЕЛЬ
+   ========================================== */
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+
+    background: #111827;
+    border-bottom: 3px solid #c99b4b;
+    padding: 8px 12px;
+
+    box-shadow: 0 5px 18px rgba(24, 30, 43, 0.12);
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ==========================================
+   КНОПКИ
+   ========================================== */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 38px;
+    padding: 0 14px;
+
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease,
+        background 0.15s ease;
+}
+
+.btn:not(.disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.btn:not(.disabled):active {
+    transform: translateY(0);
+}
+
+.btn.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.btn-blue {
+    background: #2563eb;
+    color: #fff;
+}
+
+.btn-red {
+    background: #be123c;
+    color: #fff;
+}
+
+.btn-export {
+    background: linear-gradient(90deg, #2563eb, #be123c);
+    color: #fff;
+    margin-left: auto;
+}
+
+.btn-ghost {
+    background: #1e293b;
+    color: #f8fafc;
+    border: 1px solid #374151;
+}
+
+.btn-ghost-dark {
+    background: #f1e7d4;
+    color: #49391f;
+    border: 1px solid #dfc99e;
+}
+
+.btn-ghost-dark:hover {
+    background: #ead9b8;
+}
+
+/* ==========================================
+   ПАСХАЛКА / ВЫПАДАЮЩЕЕ МЕНЮ
+   ========================================== */
+
+.ee-dropdown {
+    position: relative;
+}
+
+.ee-dropdown summary {
+    list-style: none;
+}
+
+.ee-dropdown summary::-webkit-details-marker {
+    display: none;
+}
+
+.ee-active {
+    border-color: #c99b4b;
+    color: #f0cf91;
+}
+
+.ee-panel {
+    position: absolute;
+    top: 44px;
+    left: 0;
+
+    width: 250px;
+
+    background: #fffdf8;
+    border: 1.5px solid #d8b875;
+    border-radius: 12px;
+
+    padding: 12px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    box-shadow: 0 14px 35px rgba(55, 42, 20, 0.18);
+
+    z-index: 40;
+    color: #172033;
+    font-size: 13px;
+}
+
+.ee-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-weight: 600;
+}
+
+.ee-panel input[type="number"] {
+    width: 55px;
+    padding: 5px;
+
+    border: 1px solid #d6c29b;
+    border-radius: 6px;
+
+    background: #fffaf0;
+    color: #172033;
+}
+
+.ee-panel input[type="text"] {
+    width: 100%;
+    padding: 7px;
+
+    border: 1px solid #d6c29b;
+    border-radius: 6px;
+
+    background: #fffaf0;
+    color: #172033;
+}
+
+/* ==========================================
+   СООБЩЕНИЯ
+   ========================================== */
+
+.alert {
+    background: #fff0e6;
+    color: #a43b24;
+
+    padding: 10px 14px;
+
+    font-weight: 600;
+    font-size: 14px;
+
+    border-bottom: 1px solid #f0c6a8;
+}
+
+/* ==========================================
+   ЭКРАН ВХОДА
+   ========================================== */
+
+.login-screen {
+    min-height: 100vh;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 16px;
+
+    background:
+        radial-gradient(
+            circle at 15% 20%,
+            rgba(220, 183, 112, 0.2),
+            transparent 35%
+        ),
+        linear-gradient(135deg, #171d2b 0%, #2b2419 100%);
+}
+
+/* ==========================================
+   ТЕКСТ
+   ========================================== */
+
+.muted-text {
+    font-size: 13px;
+    color: #777365;
+    line-height: 1.4;
+}
+
+/* ==========================================
+   ОСНОВНОЙ КОНТЕЙНЕР
+   ========================================== */
+
+.dashboard-wrap {
+    max-width: 820px;
+    width: 100%;
+
+    margin: 24px auto;
+    padding: 0 12px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ==========================================
+   КАРТОЧКИ "ГОТОВ К НОВОМУ УРОКУ"
+   И "ПРОВЕДЁННЫЕ УРОКИ"
+   ========================================== */
+
+.empty-box,
+.archive-box {
+    position: relative;
+    overflow: hidden;
+
+    background: rgba(255, 253, 248, 0.94);
+
+    border-radius: 14px;
+    padding: 20px;
+
+    border: 1.5px solid #e5d9c3;
+    border-top: 4px solid #c99b4b;
+
+    box-shadow:
+        0 3px 10px rgba(65, 49, 25, 0.06),
+        0 1px 2px rgba(65, 49, 25, 0.04);
+
+    backdrop-filter: blur(3px);
+}
+
+/* Маленький золотой декоративный элемент */
+
+.empty-box::after,
+.archive-box::after {
+    content: "";
+    position: absolute;
+
+    right: -35px;
+    top: -45px;
+
+    width: 120px;
+    height: 120px;
+
+    border: 1px solid rgba(201, 155, 75, 0.16);
+    border-radius: 50%;
+
+    pointer-events: none;
+}
+
+.empty-box::before,
+.archive-box::before {
+    content: "";
+    position: absolute;
+
+    right: -15px;
+    top: -25px;
+
+    width: 80px;
+    height: 80px;
+
+    border: 1px solid rgba(201, 155, 75, 0.12);
+    border-radius: 50%;
+
+    pointer-events: none;
+}
+
+.empty-box h2 {
+    position: relative;
+    z-index: 1;
+
+    color: #263f79;
+    margin-bottom: 8px;
+}
+
+.empty-box p,
+.archive-box p {
+    position: relative;
+    z-index: 1;
+    line-height: 1.55;
+}
+
+.archive-box {
+    border-top-color: #be123c;
+}
+
+.archive-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    flex-wrap: wrap;
+    gap: 10px;
+
+    margin-bottom: 14px;
+}
+
+.archive-header h2 {
+    color: #172033;
+}
+
+.archive-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ==========================================
+   ЭЛЕМЕНТЫ АРХИВА
+   ========================================== */
+
+.archive-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 10px;
+    padding: 10px 12px;
+
+    background: #fffaf1;
+
+    border: 1px solid #e8dcc7;
+    border-left: 4px solid #c99b4b;
+
+    border-radius: 9px;
+
+    transition:
+        background 0.15s ease,
+        transform 0.15s ease;
+}
+
+.archive-item:hover {
+    background: #fff5e3;
+    transform: translateX(2px);
+}
+
+.archive-meta {
+    font-size: 12px;
+    color: #817765;
+}
+
+.archive-btns {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ==========================================
+   СЕТКА УЧЕНИКОВ
+   ========================================== */
+
+.grid {
+    flex: 1;
+
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+
+    gap: 8px;
+    padding: 10px;
+
+    height: calc(100vh - 57px);
+}
+
+/* ==========================================
+   КАРТОЧКИ УЧЕНИКОВ
+   ========================================== */
+
+.card {
+    background: rgba(255, 253, 248, 0.96);
+
+    border: 1.5px solid #e4d7bf;
+    border-left: 5px solid #c99b4b;
+
+    border-radius: 10px;
+    padding: 8px 10px;
+
+    text-decoration: none;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 8px;
+
+    box-shadow: 0 1px 4px rgba(65, 49, 25, 0.06);
+
+    transition:
+        transform 0.12s ease,
+        box-shadow 0.12s ease,
+        background 0.12s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 5px 12px rgba(65, 49, 25, 0.1);
+}
+
+.card:active {
+    transform: scale(0.98);
+}
+
+/* Выбранная карточка */
+
+.card-active {
+    background: #eff6ff;
+
+    border-color: #93b4e8;
+    border-left-color: #2563eb;
+}
+
+/* Максимальный балл */
+
+.card-max {
+    background: #fff1f2;
+
+    border-color: #f3a4b4;
+    border-left-color: #be123c;
+}
+
+/* ==========================================
+   ИНФОРМАЦИЯ В КАРТОЧКЕ
+   ========================================== */
+
+.card-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    overflow: hidden;
+}
+
+.card-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: #8b806d;
+}
+
+.card-name {
+    font-size: 14px;
+    font-weight: 700;
+
+    color: #172033;
+    line-height: 1.2;
+}
+
+.card-note {
+    display: inline-block;
+
+    margin-top: 2px;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    color: #ffffff;
+    background: #be123c;
+
+    padding: 1px 6px;
+    border-radius: 4px;
+
+    width: fit-content;
+}
+
+/* ==========================================
+   БЛОК БАЛЛОВ
+   ========================================== */
+
+.card-badge {
+    min-width: 54px;
+    height: 50px;
+
+    border-radius: 8px;
+
+    background: #f3ead9;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+}
+
+.card-active .card-badge {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.card-max .card-badge {
+    background: #be123c;
+    color: #ffffff;
+}
+
+.card-grade {
+    font-size: 20px;
+    font-weight: 900;
+
+    line-height: 1;
+
+    color: #8b6428;
+}
+
+.card-active .card-grade,
+.card-max .card-grade {
+    color: #ffffff;
+}
+
+.card-pts {
+    font-size: 10px;
+    font-weight: 600;
+
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
+/* ==========================================
+   МОДАЛЬНОЕ ОКНО
+   ========================================== */
+
+.modal {
+    position: fixed;
+    inset: 0;
+
+    background: rgba(25, 24, 21, 0.72);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 14px;
+    z-index: 50;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.modal-box {
+    background: #fffdf8;
+
+    border-top: 5px solid #c99b4b;
+    border-bottom: 5px solid #be123c;
+
+    border-radius: 14px;
+    padding: 18px;
+
+    width: 100%;
+    max-width: 420px;
+
+    max-height: 85vh;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+}
+
+/* ==========================================
+   ВЫБОР СТОЛБЦА
+   ========================================== */
+
+.col-picker {
+    display: flex;
+    flex-direction: column;
+
+    gap: 5px;
+
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.col-picker select,
+.file-name-input {
+    padding: 9px 10px;
+
+    border-radius: 8px;
+    border: 1.5px solid #d6bd8c;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    background: #fffaf1;
+    color: #172033;
+
+    width: 100%;
+}
+
+.col-picker select:focus,
+.file-name-input:focus,
+.ee-panel input:focus {
+    outline: 2px solid rgba(201, 155, 75, 0.3);
+    border-color: #c99b4b;
+}
+
+/* ==========================================
+   СПИСОК ПРЕДПРОСМОТРА
+   ========================================== */
+
+.preview-list {
+    overflow-y: auto;
+
+    padding-left: 20px;
+
+    font-size: 14px;
+    line-height: 1.6;
+
+    border: 1px solid #e8dcc7;
+    border-radius: 8px;
+
+    padding-top: 8px;
+    padding-bottom: 8px;
+
+    background: #fffaf1;
+}
+
+.muted {
+    color: #8b806d;
+    list-style: none;
+}
+
+/* ==========================================
+   КНОПКИ В МОДАЛЬНОМ ОКНЕ
+   ========================================== */
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* ==========================================
+   АДАПТИВНОСТЬ
+   ========================================== */
+
+@media (max-width: 768px) {
+    .topbar {
+        padding: 6px 8px;
+    }
+
+    .topbar-actions {
+        gap: 5px;
+    }
+
+    .btn {
+        height: 32px;
+        padding: 0 10px;
+
+        font-size: 12px;
+        border-radius: 6px;
+    }
+
+    .btn-export {
+        margin-left: 0;
+    }
+
+    .topbar-actions .btn,
+    .topbar-actions form,
+    .topbar-actions details {
+        flex: 1 1 auto;
+    }
+
+    .topbar-actions form .btn,
+    .topbar-actions details summary {
+        width: 100%;
+    }
+
+    /* Список учеников на телефоне */
+
+    .grid {
+        display: flex;
+        flex-direction: column;
+
+        height: auto;
+        gap: 5px;
+
+        padding: 8px;
+    }
+
+    .card {
+        flex-direction: row;
+        align-items: center;
+
+        padding: 6px 10px;
+        min-height: 46px;
+
+        border-radius: 8px;
+        border-left-width: 4px;
+    }
+
+    .card-info {
+        flex-direction: row;
+        align-items: center;
+
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .card-num {
+        font-size: 12px;
+        min-width: 18px;
+    }
+
+    .card-name {
+        font-size: 14px;
+    }
+
+    .card-note {
+        margin-top: 0;
+
+        font-size: 10px;
+        padding: 1px 5px;
+    }
+
+    .card-badge {
+        flex-direction: row;
+        gap: 5px;
+
+        min-width: 66px;
+        height: 32px;
+
+        padding: 0 8px;
+        border-radius: 6px;
+    }
+
+    .card-grade {
+        font-size: 16px;
+    }
+
+    .card-pts {
+        font-size: 11px;
+        margin-top: 0;
+    }
+
+    .dashboard-wrap {
+        margin: 16px auto;
+        gap: 12px;
+    }
+
+    .empty-box,
+    .archive-box {
+        padding: 16px;
+        border-radius: 12px;
+    }
+
+    .archive-item {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .archive-btns {
+        flex-wrap: wrap;
+    }
+}
+
+/* ==========================================
+   МАЛЕНЬКИЕ ЭКРАНЫ
+   ========================================== */
+
+@media (max-width: 420px) {
+    .btn {
+        font-size: 11px;
+        padding: 0 8px;
+    }
+
+    .topbar-actions {
+        gap: 4px;
+    }
+
+    .empty-box h2,
+    .archive-box h2 {
+        font-size: 18px;
+    }
+
+    .empty-box p,
+    .archive-box p {
+        font-size: 14px;
+    }
+
+    .modal-box {
+        padding: 14px;
+    }
+}
+
+/* ==========================================
+   УМЕНЬШЕНИЕ АНИМАЦИИ ПО НАСТРОЙКЕ СИСТЕМЫ
+   ========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+    }
+}
